@@ -1629,7 +1629,7 @@ do
 		end
 	end))
 
-	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "ATLAS"
+	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "ATLAS_X_GARN"
 	local uicolor = _G.uicolor and _G.uicolor or Color3.fromRGB(41, 74, 122)
 	local isDesktop = ScreenGui.AbsoluteSize.X >= 850 and ScreenGui.AbsoluteSize.Y >= 500
 
@@ -43262,6 +43262,8 @@ do
 			return treatsMissing > 0 and honeyCost or 0
 		end
 
+		logger.log("Auto Level Up: need " .. treatsMissing .. " more treats (" .. formatNumber(math.max(honeyCost, 0)) .. " honey), have " .. formatNumber(localPlayer.CoreStats.Honey.Value) .. " honey, buy treats = " .. tostring(cfg.hive.buytreats))
+
 		-- enough treats in the inventory: feed the bees
 		if not (treatsMissing > 0) then
 			for _, cell in ipairs(cells) do
@@ -43313,12 +43315,20 @@ do
 			logger.log("Auto Level Up: Purchasing " .. treatsMissing .. "x treats (" .. formatNumber(honeyCost) .. " honey)")
 
 			while bought < treatsMissing do
-				if distanceTo(locations.TreatShop) > 15 then
-					goTo(locations.TreatShop, "Treat Shop")
+				-- the shop is the TreatMachine in the workspace; fall back to the saved coordinates
+				local machine = workspace.Decorations.Misc:FindFirstChild("TreatMachine")
+				local shopPosition = machine and machine:GetPivot().Position or locations.TreatShop
+
+				if distanceTo(shopPosition) > 10 then
+					logger.log("Auto Level Up: walking to the Treat Machine")
+					goTo(shopPosition, "Treat Shop")
 					task.wait(0.25)
 				end
 
-				if not gameApi:Event("ItemPackageEvent", "Purchase", package) then
+				local purchased = gameApi:Event("ItemPackageEvent", "Purchase", package)
+				logger.log("Auto Level Up: purchase x" .. chunk .. " ->", tostring(purchased))
+
+				if not purchased then
 					logger.warn("Failed to buy treats")
 					break
 				end
@@ -43332,6 +43342,12 @@ do
 				state.lvlupnextwake = nil
 				return
 			end
+		end
+
+		if not cfg.hive.buytreats then
+			logger.warn("Auto Level Up: not enough treats and Auto Buy Treats is off")
+		elseif honeyCost > localPlayer.CoreStats.Honey.Value then
+			logger.warn("Auto Level Up: not enough honey to buy treats, retrying in 5 minutes")
 		end
 
 		state.lvlupnextwake = os.clock() + 300
