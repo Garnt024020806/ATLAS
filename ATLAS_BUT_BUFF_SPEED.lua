@@ -1629,7 +1629,7 @@ do
 		end
 	end))
 
-	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "ATLAS_X_GARN"
+	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "ATLAS"
 	local uicolor = _G.uicolor and _G.uicolor or Color3.fromRGB(41, 74, 122)
 	local isDesktop = ScreenGui.AbsoluteSize.X >= 850 and ScreenGui.AbsoluteSize.Y >= 500
 
@@ -67117,7 +67117,17 @@ more accurate dodging]],
 					else
 						writefile("atlas-" .. localPlayer.Name .. ".json", config2 .. ".json")
 						task.wait(0.1)
-						loadstring(game:HttpGet(getUrl("script.lua")))()
+
+						-- reload this merged script (not the original script.lua, which is the old version)
+						local ok, result = pcall(function()
+							return game:HttpGet(_G.atlasscript or "https://raw.githubusercontent.com/Garnt024020806/ATLAS/refs/heads/main/ATLAS_BUT_BUFF_SPEED.lua")
+						end)
+
+						if ok and result and result ~= "" then
+							loadstring(result)()
+						else
+							ui.Notify("Config", "Failed to download the script.\nRejoin and execute it again to apply the config")
+						end
 					end
 				end, 86)
 
