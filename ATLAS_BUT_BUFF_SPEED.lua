@@ -131,20 +131,17 @@ end
 local cfg = {
 	vars = {
 		walkspeedenabled = false,
-		walkspeed = 45,
+		walkspeed = 35,
 		walkdynamic = false,
 		walkspeed2 = 1.5,
+		speedmethod = "Friction",
 		movement = "Walk",
 		tweenspeed = 6,
 		jumpshortcuts = false,
 		cannon = false,
-		fieldlimit = true,
-		airlimit = true,
-		airspeed = 60,
 	},
 	autofarm = {
 		enabled = false,
-		noclip = true,
 		autosprinkler = false,
 		autodig = false,
 		fieldinterval = 10,
@@ -421,6 +418,7 @@ local cfg = {
 	},
 	memorymatch = { blacklist = false, basic = false, mega = false, night = false, extreme = false },
 	misc = {
+		hidekey = "RightControl",
 		autorejoin2 = false,
 		anonymous = false,
 		mobiletoggle = false,
@@ -1091,30 +1089,12 @@ httprequest = function(requestOptions, v25)
 	end
 end
 
-state.killSlide = function()
-	local ok, humanoid = pcall(getHumanoid)
-	if not ok or not humanoid or humanoid.Health <= 0 then
-		return
-	end
-
-	local rootPart = getRootPart()
-	if rootPart and (humanoid.FloorMaterial ~= Enum.Material.Air or os.clock() - (state.toytime or 0) > 8) then
-		local v = rootPart.AssemblyLinearVelocity
-		rootPart.AssemblyLinearVelocity = Vector3.new(0, v.Y, 0)
-		rootPart.AssemblyAngularVelocity = Vector3.zero
-	end
-end
-
 stopMovement = function()
 	local humanoid = getHumanoid()
 
 	if humanoid.health ~= 0 then
 		local rootPart = getRootPart()
 		humanoid:MoveTo(rootPart.Position)
-
-		if cfg.vars.movement ~= "Tween" then
-			state.killSlide()
-		end
 
 		if cfg.vars.movement ~= "Tween" then
 			state.break1 = true
@@ -1643,7 +1623,7 @@ do
 		end
 	end))
 
-	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "deobfuscated by skynex - .gg/syncrypt"
+	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "atlas but change something"
 	local uicolor = _G.uicolor and _G.uicolor or Color3.fromRGB(41, 74, 122)
 	local isDesktop = ScreenGui.AbsoluteSize.X >= 850 and ScreenGui.AbsoluteSize.Y >= 500
 
@@ -2314,21 +2294,6 @@ do
 				logger.toggle(mobileToggleButton.Visible)
 			end
 		end)
-
-		connections:Add("hideuikey", UserInputService.InputBegan:Connect(function(input)
-			if input.KeyCode ~= Enum.KeyCode.RightControl or UserInputService:GetFocusedTextBox() then
-				return
-			end
-
-			if mobileToggleButton then
-				state.mobiletoggle = mobileToggleButton.Visible
-				mobileToggleButton.Visible = not mobileToggleButton.Visible
-
-				if cfg.misc.console then
-					logger.toggle(mobileToggleButton.Visible)
-				end
-			end
-		end))
 	end
 
 	local UICorner5 = Instance.new("UICorner")
@@ -6915,7 +6880,6 @@ local useToyAt
 
 useToyAt = function(toyName, expectedPrompt, retried)
 	local toy = workspace.Toys[toyName]
-	state.toytime = os.clock()
 
 	if not (distanceTo(toy.Platform.Position) < 12) then
 		if not retried then
@@ -63817,7 +63781,6 @@ do
 					end
 
 					closePopups()
-
 					v127()
 					v134()
 				end)
@@ -64321,36 +64284,6 @@ do
 						stopMovement()
 					end
 				end, "autofarm", "enabled")
-
-				local noclipParts = {}
-
-				connections:Cancel("afnoclip")
-				connections:Add("afnoclip", RunService.PreSimulation:Connect(function()
-					local character = localPlayer.Character
-
-					if not character then
-						return
-					end
-
-					if cfg.autofarm.enabled and cfg.autofarm.noclip then
-						for _, part in ipairs(character:GetDescendants()) do
-							if part:IsA("BasePart") and part.CanCollide then
-								noclipParts[part] = true
-								part.CanCollide = false
-							end
-						end
-					elseif next(noclipParts) then
-						for part in pairs(noclipParts) do
-							if part.Parent then
-								part.CanCollide = true
-							end
-						end
-
-						table.clear(noclipParts)
-					end
-				end))
-
-				Farming.AddSwitch("No Clip While Autofarming", nil, "autofarm", "noclip")
 
 				controls["Auto Sprinkler"] = Farming.AddSwitch("Auto Sprinkler", function(n)
 					if n and not connections:Get("sprinklers") then
@@ -66732,168 +66665,80 @@ more accurate dodging]],
 				Movement.AddSwitch("Enable Walk Speed", function(enabled)
 					if not enabled then
 						threads:Cancel("walkspeed")
-						connections:Cancel("antislide")
-						connections:Cancel("instantstop")
 					else
-						connections:Cancel("antislide")
-						connections:Cancel("instantstop")
-						local guard = function(dt)
-							local ok, humanoid = pcall(getHumanoid)
-							local rootPart = ok and humanoid and getRootPart()
-
-							if not rootPart or humanoid.Health <= 0 or cfg.vars.movement == "Tween" then
-								state.lastZone = nil
-								state.lastPos = nil
-								return
-							end
-
-							dt = dt or 0.017
-							local speed = humanoid.WalkSpeed
-							local now = os.clock()
-							local hasInput = humanoid.MoveDirection.Magnitude > 0.1
-
-							-- no sliding at all: no input means no horizontal movement
-							if not hasInput then
-								state.killSlide()
-							end
-
-							-- limit horizontal speed in the air after a normal jump
-							local hstate = humanoid:GetState()
-
-							if hstate == Enum.HumanoidStateType.Jumping then
-								state.jumptime = now
-							end
-
-							if cfg.vars.airlimit and speed > cfg.vars.airspeed and humanoid.FloorMaterial == Enum.Material.Air and now - (state.toytime or 0) > 8 then
-								if hstate == Enum.HumanoidStateType.Jumping or (hstate == Enum.HumanoidStateType.Freefall and now - (state.jumptime or 0) < 1.5) then
-									local vel = rootPart.AssemblyLinearVelocity
-									local horizontal = Vector3.new(vel.X, 0, vel.Z)
-
-									if horizontal.Magnitude > cfg.vars.airspeed then
-										local limited = horizontal.Unit * cfg.vars.airspeed
-										rootPart.AssemblyLinearVelocity = Vector3.new(limited.X, vel.Y, limited.Z)
-									end
-								end
-							end
-
-							-- keep the character inside the field it is farming
-							if not (cfg.vars.fieldlimit and cfg.autofarm.enabled) then
-								state.lastZone = nil
-								state.lastPos = rootPart.Position
-								return
-							end
-
-							if not state.zones or now - (state.zonesTime or 0) > 3 then
-								state.zones = workspace.FlowerZones:GetChildren()
-								state.zonesTime = now
-							end
-
-							local function inside(zone, point, margin)
-								local l = zone.CFrame:PointToObjectSpace(point)
-								return math.abs(l.X) <= zone.Size.X / 2 - margin and math.abs(l.Z) <= zone.Size.Z / 2 - margin and math.abs(l.Y) <= 40
-							end
-
-							local pos = rootPart.Position
-							local teleported = state.lastPos and (pos - state.lastPos).Magnitude > math.max(25, speed * dt * 3)
-							local zone = state.lastZone
-
-							if zone and (teleported or not zone.Parent) then
-								zone = nil
-							end
-
-							if zone then
-								-- going out on purpose (the script's own target is outside the field)?
-								local movingOut = hasInput and not inside(zone, humanoid.MoveToPoint, 0)
-
-								if movingOut then
-									zone = nil
-								else
-									local hx = zone.Size.X / 2 - 1
-									local hz = zone.Size.Z / 2 - 1
-									local vel = rootPart.AssemblyLinearVelocity
-									local l = zone.CFrame:PointToObjectSpace(pos)
-
-									-- already outside: put it back on the edge
-									if math.abs(l.X) > hx or math.abs(l.Z) > hz then
-										local clamped = zone.CFrame:PointToWorldSpace(Vector3.new(math.clamp(l.X, -hx, hx), l.Y, math.clamp(l.Z, -hz, hz)))
-										rootPart.CFrame = CFrame.new(clamped) * (rootPart.CFrame - rootPart.CFrame.Position)
-										rootPart.AssemblyLinearVelocity = Vector3.new(0, vel.Y, 0)
-									else
-										-- about to cross the edge: remove the outward speed before it happens
-										local lv = zone.CFrame:VectorToObjectSpace(Vector3.new(vel.X, 0, vel.Z))
-										local ahead = l + lv * dt * 3
-										local changed = false
-
-										if math.abs(ahead.X) > hx and (ahead.X * lv.X) > 0 then
-											lv = Vector3.new(0, 0, lv.Z)
-											changed = true
-										end
-
-										if math.abs(ahead.Z) > hz and (ahead.Z * lv.Z) > 0 then
-											lv = Vector3.new(lv.X, 0, 0)
-											changed = true
-										end
-
-										if changed then
-											local nv = zone.CFrame:VectorToWorldSpace(lv)
-											rootPart.AssemblyLinearVelocity = Vector3.new(nv.X, vel.Y, nv.Z)
-										end
-									end
-								end
-							end
-
-							if not zone then
-								for _, candidate in ipairs(state.zones) do
-									if candidate:IsA("BasePart") and inside(candidate, pos, 2) then
-										zone = candidate
-										break
-									end
-								end
-							end
-
-							state.lastZone = zone
-							state.lastPos = rootPart.Position
-						end
-
-						-- run before physics (stops momentum) and after it (catches anything left)
-						connections:Add("instantstop", RunService.PreSimulation:Connect(guard))
-						connections:Add("antislide", RunService.Heartbeat:Connect(guard))
-
 						threads:Add("walkspeed", function()
-							while task.wait(0.1) do
-								if not cfg.vars.walkdynamic then
-									local walkspeed = cfg.vars.walkspeed
-
-									if getHumanoid().WalkSpeed < walkspeed then
-										local walkspeed2 = cfg.vars.walkspeed
-										getHumanoid().WalkSpeed = walkspeed2
-										continue
-									end
+							local frictionProps = PhysicalProperties.new(0.7, 2, 0, 100, 1)
+							while true do
+								local dt = RunService.Heartbeat:Wait()
+								local char = localPlayer.Character
+								local hum = char and char:FindFirstChildOfClass("Humanoid")
+								local hrp = hum and hum.RootPart
+								if not hrp then
+									continue
 								end
 
+								-- target speed (dynamic = follow game's movespeed modifier, capped by slider)
+								local target = cfg.vars.walkspeed
 								if cfg.vars.walkdynamic then
 									local modifiers = gameApi:Cache({ "ModifierCaches", "Value" })
+									if not modifiers or not modifiers.PlayerMovespeed or not modifiers.PlayerMovespeed._ then
+										continue
+									end
+									target = math.min(target, modifiers.PlayerMovespeed._ * cfg.vars.walkspeed2)
+								end
 
-									if not (not modifiers or not modifiers.PlayerMovespeed or not modifiers.PlayerMovespeed._) then
-										local walkSpeed = modifiers.PlayerMovespeed._ * cfg.vars.walkspeed2
+								local method = cfg.vars.speedmethod or "Humanoid"
+								local dir = hum.MoveDirection
+								local moving = dir.Magnitude > 0 and hum.Health > 0
+								-- autofarm walks via MoveTo: slow down near the waypoint so high speed doesn't overshoot it
+								local maxStep = math.huge
+								local wp = hum.WalkToPoint
+								if moving and wp ~= Vector3.zero then
+									maxStep = Vector3.new(wp.X - hrp.Position.X, 0, wp.Z - hrp.Position.Z).Magnitude
+								end
 
-										if cfg.vars.walkspeed < walkSpeed then
-											walkSpeed = cfg.vars.walkspeed
+								if method == "CFrame" then
+									-- Method 2: leave WalkSpeed alone, push the root part the missing distance each frame
+									local extra = target - hum.WalkSpeed
+									if extra > 0 and moving then
+										local step = math.min(math.min(extra, 200) * dt, maxStep)
+										local unit = dir.Unit
+										local params = RaycastParams.new()
+										params.FilterDescendantsInstances = { char }
+										-- don't push into walls
+										if not workspace:Raycast(hrp.Position, unit * (step + 2), params) then
+											hrp.CFrame = hrp.CFrame + unit * step
 										end
-
-										if getHumanoid().WalkSpeed < walkSpeed then
-											getHumanoid().WalkSpeed = walkSpeed
+									end
+								elseif method == "Velocity" then
+									-- Method 3: physics tween. Set horizontal velocity directly (same idea as the Tween movement mode), keep Y so jumps/falls stay normal
+									if moving then
+										local speed = math.min(target, math.max(hum.WalkSpeed, maxStep * 10))
+										local unit = dir.Unit
+										local params = RaycastParams.new()
+										params.FilterDescendantsInstances = { char }
+										if not workspace:Raycast(hrp.Position, unit * 3, params) then
+											local v = hrp.AssemblyLinearVelocity
+											hrp.AssemblyLinearVelocity = Vector3.new(unit.X * speed, v.Y, unit.Z * speed)
 										end
+									end
+								else
+									-- Method 1 ("Friction"): high WalkSpeed + grip. "Humanoid": plain WalkSpeed, original behaviour.
+									if method == "Friction" and hrp.CustomPhysicalProperties ~= frictionProps then
+										hrp.CustomPhysicalProperties = frictionProps
+									end
+									if cfg.vars.walkdynamic then
+										if hum.WalkSpeed < target then
+											hum.WalkSpeed = target
+										end
+									elseif hum.WalkSpeed ~= target then
+										hum.WalkSpeed = target
 									end
 								end
 							end
 						end)
 					end
 				end, "vars", "walkspeedenabled")
-
-				Movement.AddSwitch("Stay Inside Field (Walk Speed)", nil, "vars", "fieldlimit")
-				Movement.AddSwitch("Limit Air Speed When Jumping", nil, "vars", "airlimit")
-				Movement.AddSlider("Air Speed Limit", nil, 30, 200, "vars", "airspeed", { Left = true })
 
 				local dynamicSpeedSwitch = Movement.AddSwitch("Dynamic Walk Speed", function(n)
 					if walkSpeedSlider then
@@ -66904,7 +66749,7 @@ more accurate dodging]],
 				end, "vars", "walkdynamic")
 
 				walkSpeedSlider = Movement.AddSlider("Walk Speed", nil, 30, 200, "vars", "walkspeed", { Left = true })
-				multiplierSlider = Movement.AddSlider("Walk Speed Multiplier", nil, 1, 5, "vars", "walkspeed2", { Left = true, Decimal = true })
+				multiplierSlider = Movement.AddSlider("Walk Speed Multiplier", nil, 1, 2, "vars", "walkspeed2", { Left = true, Decimal = true })
 
 				tweenSpeedSlider = Movement.AddSlider("Tween Speed", function()
 					if threads:Get("Autofarm") then
@@ -66917,7 +66762,9 @@ more accurate dodging]],
 					end
 				end, 1, 150, "vars", "tweenspeed", { Left = true })
 
-				Movement.AddLabel("Speeds above 70 and 8 are not recommended")
+				local speedMethod = Movement.AddDropdown("Speed Method", { "Humanoid", "Friction", "CFrame", "Velocity" }, nil, function() end, "vars", "speedmethod", { Width = 250 })
+				speedMethod.Set(cfg.vars.speedmethod or "Friction")
+				Movement.AddLabel("Speed Method: Friction / CFrame / Velocity. Too high = flagged/kicked")
 				Movement.AddLabel("If your character is sliding or stuck on ledges change it")
 				Movement.Toggle(true, true)
 				dynamicSpeedSwitch.Set(cfg.vars.walkdynamic)
@@ -67094,6 +66941,26 @@ more accurate dodging]],
 						ui.Notify("Config", "Imported config as " .. string.gsub(fileName, ".json", ""))
 					end
 				end, nil, nil, { Clear = true, Size = 200 })
+
+				local hideKeys = { "RightControl", "LeftControl", "RightShift", "LeftShift", "RightAlt", "LeftAlt", "Insert", "Delete", "Home", "End", "PageUp", "PageDown", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12" }
+				Settings.AddDropdown("Hide UI Key", hideKeys, nil, function() end, "misc", "hidekey", { Width = 250 })
+
+				connections:Add("hideuikey", UserInputService.InputBegan:Connect(function(input, processed)
+					if processed or input.UserInputType ~= Enum.UserInputType.Keyboard then
+						return
+					end
+
+					if input.KeyCode.Name ~= (cfg.misc.hidekey or "RightControl") or not mobileToggleButton then
+						return
+					end
+
+					state.mobiletoggle = mobileToggleButton.Visible
+					mobileToggleButton.Visible = not mobileToggleButton.Visible
+
+					if cfg.misc.console then
+						logger.toggle(mobileToggleButton.Visible)
+					end
+				end))
 
 				Settings.Toggle(true, true)
 			end
