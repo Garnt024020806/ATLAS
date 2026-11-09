@@ -135,6 +135,7 @@ local cfg = {
 		walkdynamic = false,
 		walkspeed2 = 1.5,
 		speedmethod = "Friction",
+		unlockspeed = false,
 		movement = "Walk",
 		tweenspeed = 6,
 		jumpshortcuts = false,
@@ -1623,7 +1624,7 @@ do
 		end
 	end))
 
-	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "atlas but change something"
+	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "ATLAS"
 	local uicolor = _G.uicolor and _G.uicolor or Color3.fromRGB(41, 74, 122)
 	local isDesktop = ScreenGui.AbsoluteSize.X >= 850 and ScreenGui.AbsoluteSize.Y >= 500
 
@@ -3227,6 +3228,13 @@ do
 			end
 
 			folderApi.AddSlider = function(sliderTitle, callback, minValue, maxValue, configSource, configKey, options)
+				local function getMax()
+					if type(maxValue) == "function" then
+						return maxValue()
+					end
+
+					return maxValue
+				end
 				table.insert(fieldClones, { sliderTitle, clone })
 				local sliderApi = {}
 				local clone5 = uiParts.slider:Clone()
@@ -3248,7 +3256,7 @@ do
 
 				local function v90(v91)
 					local v92 = math.clamp(v91.Position.X - clone5.AbsolutePosition.X, 0, clone5.AbsoluteSize.X)
-					local v93 = minValue + v92 / clone5.AbsoluteSize.X * (maxValue - minValue)
+					local v93 = minValue + v92 / clone5.AbsoluteSize.X * (getMax() - minValue)
 					TweenService:Create(indicator, TweenInfo.new(0.08, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Size = UDim2.new(0, v92, 0, 20) }):Play()
 					local text = decimal and math.round(v93 * 10) / 10 or math.floor(v93)
 					value.Text = text
@@ -3273,8 +3281,8 @@ do
 				sliderApi.Set = function(newValue)
 					local maxWidth = isDesktop and twoColumn and ImageLabel.AbsoluteSize.X * 0.5 - 47 - 5 - 10 - 15
 					maxWidth = maxWidth or ImageLabel.AbsoluteSize.X - 95 - 5 - 10 - 15
-					local clampedValue = math.clamp(tonumber(newValue) or 0, minValue, maxValue)
-					TweenService:Create(indicator, TweenInfo.new(0.08, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Size = UDim2.new(0, (clampedValue - minValue) / (maxValue - minValue) * maxWidth, 0, 20) }):Play()
+					local clampedValue = math.clamp(tonumber(newValue) or 0, minValue, getMax())
+					TweenService:Create(indicator, TweenInfo.new(0.08, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Size = UDim2.new(0, (clampedValue - minValue) / (getMax() - minValue) * maxWidth, 0, 20) }):Play()
 					local text = decimal and math.round(clampedValue * 10) / 10 or math.floor(clampedValue)
 					value.Text = text
 					configTable[configKey] = text
@@ -6977,8 +6985,8 @@ do
 			error("return", 0)
 		end
 
-		if cfg.vars.tweenspeed > 150 then
-			cfg.vars.tweenspeed = 150
+		if cfg.vars.tweenspeed > (cfg.vars.unlockspeed and 150 or 12) then
+			cfg.vars.tweenspeed = cfg.vars.unlockspeed and 150 or 12
 		elseif cfg.vars.tweenspeed < 1 then
 			cfg.vars.tweenspeed = 1
 		end
@@ -53897,9 +53905,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 				end
 			end
 
-			local v147, v148, v149
-
-			for _, missingIngredient in v147, v148, v149 do
+			for _, missingIngredient in ipairs(missingIngredients) do
 				if cfg.toys.progblender then
 					logger.log(logPrefix, "Crafting x" .. count, recipe)
 					logger.log(logPrefix, "Missing x" .. missingIngredient.Amount, missingIngredient.Type)
@@ -54951,7 +54957,22 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 					end
 
 					local now = os.clock()
-					fireclickdetector(stickerPart.ClickDetector, 5)
+					-- some executors require the 3rd arg (event name); try variants so it never throws
+					local clickDetector = stickerPart.ClickDetector
+					local fired = pcall(fireclickdetector, clickDetector, 5, "MouseClick")
+
+					if not fired then
+						fired = pcall(fireclickdetector, clickDetector, 5)
+					end
+
+					if not fired then
+						fired = pcall(fireclickdetector, clickDetector)
+					end
+
+					if not fired then
+						tracked.stickers[stickerPart] = nil
+						error("return", 0)
+					end
 
 					while not (not stickerPart.Parent or not (os.clock() - now < 2)) do
 						RunService.Heartbeat:Wait()
@@ -63508,9 +63529,8 @@ do
 				end
 
 				if not (not cfg.planters.enabled or cfg.planters.method ~= "Nectar" or not cfg.planters.nectar.farmfield) then
-					local v136, v137, v138
-
-					for _, v139 in v136, v137, v138 do
+					-- decompiler dropped the source list here (was nil -> iterate error); skipped safely
+					for _, v139 in ipairs({}) do
 						setField(v139.field)
 						break
 					end
@@ -66654,12 +66674,12 @@ more accurate dodging]],
 				local walkSpeedSlider = nil
 				local multiplierSlider = nil
 
-				if cfg.vars.walkspeed > 200 then
-					cfg.vars.walkspeed = 200
+				if cfg.vars.walkspeed > (cfg.vars.unlockspeed and 200 or 90) then
+					cfg.vars.walkspeed = cfg.vars.unlockspeed and 200 or 90
 				end
 
-				if cfg.vars.tweenspeed > 150 then
-					cfg.vars.tweenspeed = 150
+				if cfg.vars.tweenspeed > (cfg.vars.unlockspeed and 150 or 12) then
+					cfg.vars.tweenspeed = cfg.vars.unlockspeed and 150 or 12
 				end
 
 				Movement.AddSwitch("Enable Walk Speed", function(enabled)
@@ -66687,6 +66707,7 @@ more accurate dodging]],
 									target = math.min(target, modifiers.PlayerMovespeed._ * cfg.vars.walkspeed2)
 								end
 
+								target = math.min(target, cfg.vars.unlockspeed and 200 or 90)
 								local method = cfg.vars.speedmethod or "Humanoid"
 								local dir = hum.MoveDirection
 								local moving = dir.Magnitude > 0 and hum.Health > 0
@@ -66748,7 +66769,19 @@ more accurate dodging]],
 					end
 				end, "vars", "walkdynamic")
 
-				walkSpeedSlider = Movement.AddSlider("Walk Speed", nil, 30, 200, "vars", "walkspeed", { Left = true })
+				Movement.AddSwitch("Unlock Speed Detectable", function(on)
+					if walkSpeedSlider and cfg.vars.walkspeed > (on and 200 or 90) then
+						walkSpeedSlider.Set(on and 200 or 90)
+					end
+
+					if tweenSpeedSlider and cfg.vars.tweenspeed > (on and 150 or 12) then
+						tweenSpeedSlider.Set(on and 150 or 12)
+					end
+				end, "vars", "unlockspeed", { Tooltip = "Default limits: walk 90, tween 12\nOn: walk 200, tween 150\nEasily detected, can get you kicked or banned" })
+
+				walkSpeedSlider = Movement.AddSlider("Walk Speed", nil, 30, function()
+					return cfg.vars.unlockspeed and 200 or 90
+				end, "vars", "walkspeed", { Left = true })
 				multiplierSlider = Movement.AddSlider("Walk Speed Multiplier", nil, 1, 2, "vars", "walkspeed2", { Left = true, Decimal = true })
 
 				tweenSpeedSlider = Movement.AddSlider("Tween Speed", function()
@@ -66760,11 +66793,13 @@ more accurate dodging]],
 							threads:Add("Autofarm", autofarmLoop)
 						end
 					end
-				end, 1, 150, "vars", "tweenspeed", { Left = true })
+				end, 1, function()
+					return cfg.vars.unlockspeed and 150 or 12
+				end, "vars", "tweenspeed", { Left = true })
 
 				local speedMethod = Movement.AddDropdown("Speed Method", { "Humanoid", "Friction", "CFrame", "Velocity" }, nil, function() end, "vars", "speedmethod", { Width = 250 })
 				speedMethod.Set(cfg.vars.speedmethod or "Friction")
-				Movement.AddLabel("Speed Method: Friction / CFrame / Velocity. Too high = flagged/kicked")
+				Movement.AddLabel("Default max: walk 90, tween 12. Unlock Speed lifts it (detectable)")
 				Movement.AddLabel("If your character is sliding or stuck on ledges change it")
 				Movement.Toggle(true, true)
 				dynamicSpeedSwitch.Set(cfg.vars.walkdynamic)
