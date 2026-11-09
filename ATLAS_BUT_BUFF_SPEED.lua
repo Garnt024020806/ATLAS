@@ -416,6 +416,7 @@ local cfg = {
 		stoprjgifted = false,
 		rjbeetypes = false,
 		rjrarity = false,
+		giftedamount = 10,
 		lvlup = false,
 		buytreats = false,
 		buyall2 = false,
@@ -43170,6 +43171,117 @@ do
 		end
 	end
 
+	-- Auto Gifted Bee: feeds the selected bee its favorite fruit until it becomes gifted
+	-- favorites from https://bee-swarm-simulator.fandom.com/wiki/Treats
+	state.autoGiftedBee = function()
+		local fruitNames = { SunflowerSeed = "Sunflower Seed", Strawberry = "Strawberry", Pineapple = "Pineapple", Blueberry = "Blueberry" }
+		local favorites = {
+			SunflowerSeed = { "Basic", "Bomber", "Looker", "Commander", "Demo", "Carpenter", "Ninja", "Precise", "Vector" },
+			Strawberry = { "Rad", "Rascal", "Stubborn", "Rage", "Riley", "Baby", "Shy", "Spicy" },
+			Pineapple = { "Brave", "Hasty", "Exhausted", "Fire", "Honey", "Shocked", "Demon", "Lion", "Fuzzy" },
+			Blueberry = { "Bumble", "Cool", "Bubble", "Bucko", "Frosty", "Diamond", "Music", "Tadpole", "Buoyant" },
+		}
+		local favoriteFruit = {}
+
+		for fruit, bees in pairs(favorites) do
+			for _, beeName in ipairs(bees) do
+				favoriteFruit[beeName] = fruit
+			end
+		end
+
+		local finished = nil
+
+		while not finished do
+			if not RunService.Heartbeat:Wait() then
+				break
+			end
+
+			local ok, result = pcall(function()
+				local cellX = tonumber(string.match(cfg.hive.bee, "(%d+),"))
+				local cellY = tonumber(string.match(cfg.hive.bee, ",(%d+)"))
+				local cell = state.hive.Cells:FindFirstChild("C" .. cfg.hive.bee)
+
+				if not cell or not cellX or not cellY then
+					ui.Notify("Auto Gifted Bee", "No bee selected")
+					cfg.hive.bee = false
+					finished = true
+					controls["Auto Gifted Bee"].Set(false)
+					return
+				end
+
+				local beeName = (string.gsub(cell.CellType.Value, "Bee$", ""))
+				local fruit = favoriteFruit[beeName]
+
+				if not fruit then
+					ui.Notify("Auto Gifted Bee", beeName .. " Bee has no favorite fruit")
+					finished = true
+					controls["Auto Gifted Bee"].Set(false)
+					return
+				end
+
+				if cell:FindFirstChild("GiftedCell") then
+					ui.Notify("Auto Gifted Bee", beeName .. " Bee is already gifted")
+					finished = true
+					controls["Auto Gifted Bee"].Set(false)
+					return
+				end
+
+				gameApi:CacheUpdate()
+
+				while true do
+					local have = gameApi:Cache({ "Eggs", fruit }) or 0
+
+					if have < 1 then
+						ui.Notify("Auto Gifted Bee", "Out of " .. fruitNames[fruit])
+						finished = true
+						controls["Auto Gifted Bee"].Set(false)
+						return
+					end
+
+					if distanceTo(localPlayer.SpawnPos.Value.Position, true) > 9 then
+						goTo(localPlayer.SpawnPos.Value.Position, "Hive")
+						task.wait(0.5)
+					end
+
+					local amount = math.min(cfg.hive.giftedamount or 10, have)
+
+					logger.log("Auto Gifted Bee: feeding x" .. amount .. " " .. fruitNames[fruit] .. " to " .. beeName .. " Bee (" .. have .. " left)")
+
+					local eggCount, success, honeycombData, discoveredBees, eggUses = gameApi:Event("ConstructHiveCellFromEgg", cellX, cellY, fruit, amount, false)
+
+					if not success then
+						logger.warn("Failed to feed " .. fruitNames[fruit])
+						finished = true
+						controls["Auto Gifted Bee"].Set(false)
+						return
+					end
+
+					gameApi:CacheSet({ "Eggs", fruit }, eggCount)
+					gameApi:CacheSet("Honeycomb", honeycombData)
+					gameApi:CacheSet("DiscoveredBees", discoveredBees)
+					gameApi:CacheSet({ "Totals", "EggUses" }, eggUses)
+					task.wait(0.3)
+
+					cell = state.hive.Cells:FindFirstChild("C" .. cfg.hive.bee)
+
+					if cell and cell:FindFirstChild("GiftedCell") then
+						logger.log("Auto Gifted Bee: " .. beeName .. " Bee is now gifted")
+						ui.Notify("Auto Gifted Bee", beeName .. " Bee is now gifted")
+						finished = true
+						controls["Auto Gifted Bee"].Set(false)
+						return
+					end
+				end
+			end)
+
+			if not ok and result ~= "return" then
+				task.wait()
+				logger.warn(result)
+				task.wait(1)
+			end
+		end
+	end
+
 	-- Auto Level Up Hive (ported from Atlas v1.2)
 	-- estimateOnly = true  -> returns the honey needed to buy the missing treats (used by "Refresh Honey")
 	state.levelUpHive = function(estimateOnly)
@@ -64134,7 +64246,7 @@ do
 	controls["Stop Everything"] = Home.AddSwitch("Stop Everything", function(stop)
 		if not stop or not threads:Get("Autofarm") then
 			if not stop then
-				for _, amuletName in ipairs({ "Moon Amulet", "Star Amulet", "Mutations", "Royal Jelly", "Gifted Basic" }) do
+				for _, amuletName in ipairs({ "Moon Amulet", "Star Amulet", "Mutations", "Royal Jelly", "Gifted Basic", "Gifted Bee" }) do
 					if not threads:Get("Auto " .. amuletName) then
 						continue
 					end
@@ -66133,7 +66245,7 @@ which bees and get all 3 targets if
 						controls["Stop Everything"].Set(false)
 					end
 				else
-					for _, otherName in ipairs({ "Star Amulet", "Mutations", "Royal Jelly", "Gifted Basic" }) do
+					for _, otherName in ipairs({ "Star Amulet", "Mutations", "Royal Jelly", "Gifted Basic", "Gifted Bee" }) do
 						if not threads:Get("Auto " .. otherName) then
 							continue
 						end
@@ -66158,7 +66270,7 @@ which bees and get all 3 targets if
 						controls["Stop Everything"].Set(false)
 					end
 				else
-					for _, otherName in ipairs({ "Moon Amulet", "Mutations", "Royal Jelly", "Gifted Basic" }) do
+					for _, otherName in ipairs({ "Moon Amulet", "Mutations", "Royal Jelly", "Gifted Basic", "Gifted Bee" }) do
 						if not threads:Get("Auto " .. otherName) then
 							continue
 						end
@@ -66226,7 +66338,7 @@ which bees and get all 3 targets if
 							controls["Stop Everything"].Set(false)
 						end
 					else
-						for _, otherName in ipairs({ "Moon Amulet", "Star Amulet", "Mutations", "Gifted Basic" }) do
+						for _, otherName in ipairs({ "Moon Amulet", "Star Amulet", "Mutations", "Gifted Basic", "Gifted Bee" }) do
 							if not threads:Get("Auto " .. otherName) then
 								continue
 							end
@@ -66252,7 +66364,7 @@ which bees and get all 3 targets if
 							controls["Stop Everything"].Set(false)
 						end
 					else
-						for _, otherName in ipairs({ "Moon Amulet", "Star Amulet", "Mutations", "Royal Jelly" }) do
+						for _, otherName in ipairs({ "Moon Amulet", "Star Amulet", "Mutations", "Royal Jelly", "Gifted Bee" }) do
 							if not threads:Get("Auto " .. otherName) then
 								continue
 							end
@@ -66265,6 +66377,30 @@ which bees and get all 3 targets if
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true })
+
+				controls["Auto Gifted Bee"] = Hive.AddSwitch("Auto Gifted Bee", function(enabled)
+					if not enabled or threads:Get("Auto Gifted Bee") then
+						if not enabled and threads:Get("Auto Gifted Bee") then
+							threads:Cancel("Auto Gifted Bee")
+							stopMovement()
+							controls["Stop Everything"].Set(false)
+						end
+					else
+						for _, otherName in ipairs({ "Moon Amulet", "Star Amulet", "Mutations", "Royal Jelly", "Gifted Basic" }) do
+							if not threads:Get("Auto " .. otherName) then
+								continue
+							end
+							ui.Notify("Warning", "Auto " .. otherName .. " is still running")
+							controls["Auto Gifted Bee"].Set(false)
+							return
+						end
+
+						threads:Add("Auto Gifted Bee", state.autoGiftedBee)
+						controls["Stop Everything"].Set(true)
+					end
+				end, nil, nil, { Bee = true, Tooltip = "Feeds the selected bee its favorite fruit\nuntil it becomes gifted" })
+
+				Hive.AddSlider("Fruit Amount", nil, 1, 200, "hive", "giftedamount", { Left = true })
 
 				controls["Auto Mutations"] = Hive.AddSwitch("Auto Mutations", function(enabled)
 					if not enabled or threads:Get("Auto Mutations") then
