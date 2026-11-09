@@ -416,6 +416,10 @@ local cfg = {
 		stoprjgifted = false,
 		rjbeetypes = false,
 		rjrarity = false,
+		lvlup = false,
+		buytreats = false,
+		buyall2 = false,
+		targetlvl = 10,
 	},
 	memorymatch = { blacklist = false, basic = false, mega = false, night = false, extreme = false },
 	misc = {
@@ -1065,6 +1069,7 @@ local locations = {
 	BlueHQ = Vector3.new(282, 5, 83),
 	RedHQ = Vector3.new(-325, 21, 197),
 	Mountaintop = Vector3.new(-19, 177, -160),
+	TreatShop = Vector3.new(-230, 5, 89),
 	CoconutShop = Vector3.new(-140, 72, 500),
 	LavaShop = Vector3.new(298, 26, 272),
 	DiamondMaskShop = Vector3.new(-337, 132, -390),
@@ -43165,6 +43170,173 @@ do
 		end
 	end
 
+	-- Auto Level Up Hive (ported from Atlas v1.2)
+	-- estimateOnly = true  -> returns the honey needed to buy the missing treats (used by "Refresh Honey")
+	state.levelUpHive = function(estimateOnly)
+		local priorityByType = { Digital = 1, Tabby = 2, Crimson = 3 }
+		local priorityByRarity = { Event = 4, Mythic = 5, Legendary = 6, Epic = 7, Rare = 8, Common = 9 }
+		local buyChunks = { 1e10, 1e9, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10 }
+		local lvlupData = state.lvlupdata
+
+		if not lvlupData then
+			local ok, result = pcall(function()
+				return {
+					LvlToBond = debug.getupvalue(require(ReplicatedStorage.BeeStats).LvlToTotalBond, 1),
+					BeeTypes = debug.getupvalue(require(ReplicatedStorage.BeeTypes).GetTypes, 1),
+				}
+			end)
+
+			if not ok or type(result) ~= "table" or type(result.LvlToBond) ~= "table" or type(result.BeeTypes) ~= "table" then
+				ui.Notify("Auto Level Up", "Failed to load bee data")
+
+				if not estimateOnly then
+					controls["Auto Level Up Hive"].Set(false)
+				end
+
+				return
+			end
+
+			lvlupData = result
+			state.lvlupdata = result
+		end
+
+		local playerData = gameApi:CacheUpdate()
+		local targetLvl = cfg.hive.targetlvl or 10
+		local targetBond = lvlupData.LvlToBond[targetLvl]
+
+		if not targetBond then
+			ui.Notify("Auto Level Up", "Invalid target level")
+
+			if not estimateOnly then
+				controls["Auto Level Up Hive"].Set(false)
+			end
+
+			return
+		end
+
+		local cells = {}
+
+		for k, row in pairs(playerData.Honeycomb) do
+			for k2, bee in pairs(row) do
+				local beeInfo = lvlupData.BeeTypes[bee.Type]
+				local rarity = beeInfo and beeInfo.Rarity
+				local needed = bee.Lvl < targetLvl and targetBond - lvlupData.LvlToBond[bee.Lvl] or 0
+
+				table.insert(cells, {
+					x = tonumber(string.sub(k, 2)),
+					y = tonumber(string.sub(k2, 2)),
+					lvl = bee.Lvl,
+					neededbond = needed > 0 and needed or nil,
+					priority = priorityByType[bee.Type] or priorityByRarity[rarity] or 99,
+				})
+			end
+		end
+
+		table.sort(cells, function(a, b)
+			return a.priority < b.priority
+		end)
+
+		local modifiers = gameApi:Cache({ "ModifierCaches", "Value" })
+		local treatMultiplier = modifiers and modifiers.TreatBondMultiplier and modifiers.TreatBondMultiplier._ or 1
+		local totalBond = 0
+
+		for _, cell in ipairs(cells) do
+			if cell.neededbond then
+				totalBond += cell.neededbond
+			end
+		end
+
+		if totalBond == 0 then
+			if estimateOnly then
+				return 0
+			end
+
+			controls["Auto Level Up Hive"].Set(false)
+			return
+		end
+
+		local treatsMissing = math.ceil(totalBond / (10 * treatMultiplier)) - (playerData.Eggs.Treat or 0)
+		local honeyCost = treatsMissing * 10000
+
+		if estimateOnly then
+			return treatsMissing > 0 and honeyCost or 0
+		end
+
+		-- enough treats in the inventory: feed the bees
+		if not (treatsMissing > 0) then
+			for _, cell in ipairs(cells) do
+				if cell.neededbond then
+					local amount = math.ceil(cell.neededbond / (10 * treatMultiplier))
+
+					logger.log("Auto Level Up: Feeding x" .. amount .. " treats to cell x" .. cell.x .. " y" .. cell.y)
+
+					if distanceTo(localPlayer.SpawnPos.Value.Position, true) > 9 then
+						goTo(localPlayer.SpawnPos.Value.Position, "Hive")
+						task.wait(0.5)
+					end
+
+					local eggCount, success, honeycombData, discoveredBees, eggUses = gameApi:Event("ConstructHiveCellFromEgg", cell.x, cell.y, "Treat", amount, false)
+
+					if not success then
+						logger.warn("Failed to use Treat on cell x" .. cell.x .. " y" .. cell.y)
+						state.lvlupnextwake = os.clock() + 300
+						return
+					end
+
+					gameApi:CacheSet({ "Eggs", "Treat" }, eggCount)
+					gameApi:CacheSet("Honeycomb", honeycombData)
+					gameApi:CacheSet("DiscoveredBees", discoveredBees)
+					gameApi:CacheSet({ "Totals", "EggUses" }, eggUses)
+					task.wait(0.3)
+				end
+			end
+
+			return
+		end
+
+		-- not enough treats: buy the missing ones
+		if cfg.hive.buytreats and honeyCost <= localPlayer.CoreStats.Honey.Value then
+			local chunk = cfg.hive.buyall2 and treatsMissing or 1
+
+			if not cfg.hive.buyall2 then
+				for _, size in ipairs(buyChunks) do
+					if size <= treatsMissing then
+						chunk = size
+						break
+					end
+				end
+			end
+
+			local package = { Category = "Eggs", Type = "Treat", Amount = chunk }
+			local bought = 0
+
+			logger.log("Auto Level Up: Purchasing " .. treatsMissing .. "x treats (" .. formatNumber(honeyCost) .. " honey)")
+
+			while bought < treatsMissing do
+				if distanceTo(locations.TreatShop) > 15 then
+					goTo(locations.TreatShop, "Treat Shop")
+					task.wait(0.25)
+				end
+
+				if not gameApi:Event("ItemPackageEvent", "Purchase", package) then
+					logger.warn("Failed to buy treats")
+					break
+				end
+
+				bought += chunk
+				task.wait(0.25)
+				gameApi:CacheUpdate()
+			end
+
+			if treatsMissing <= bought then
+				state.lvlupnextwake = nil
+				return
+			end
+		end
+
+		state.lvlupnextwake = os.clock() + 300
+	end
+
 	discord.Send = function(title, message, showExecutor)
 		httprequest({
 			Method = "POST",
@@ -63801,6 +63973,11 @@ do
 					end
 
 					closePopups()
+
+					if cfg.hive.lvlup and state.levelUpHive and (not state.lvlupnextwake or state.lvlupnextwake < os.clock()) then
+						state.levelUpHive()
+					end
+
 					v127()
 					v134()
 				end)
@@ -66143,6 +66320,23 @@ which bees and get all 3 targets if
 					InstantConversion = { "+% Instant Conversion", 0.08, 0.2 },
 					Movespeed = { "+ Movespeed", 2, 6 },
 				})
+
+				-- Auto Level Up Hive (ported from Atlas v1.2)
+				controls["Auto Level Up Hive"] = Hive.AddSwitch("Auto Level Up Hive", function()
+					state.lvlupnextwake = nil
+				end, "hive", "lvlup")
+				Hive.AddSwitch("Auto Buy Treats", function()
+					state.lvlupnextwake = nil
+				end, "hive", "buytreats")
+				Hive.AddSwitch("Buy All At Once", nil, "hive", "buyall2")
+				Hive.AddSlider("Target Level", function()
+					state.lvlupnextwake = nil
+				end, 2, 25, "hive", "targetlvl", { Left = true })
+				controls["Honey Needed"] = Hive.AddLabel("Honey Needed: 0?")
+				Hive.AddButton("Refresh Honey", function()
+					local needed = state.levelUpHive(true)
+					controls["Honey Needed"].Text = "Honey Needed: " .. formatNumber(needed or 0)
+				end)
 			end
 
 			do
