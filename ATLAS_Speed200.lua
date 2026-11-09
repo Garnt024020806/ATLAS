@@ -138,9 +138,13 @@ local cfg = {
 		tweenspeed = 6,
 		jumpshortcuts = false,
 		cannon = false,
+		fieldlimit = true,
+		airlimit = true,
+		airspeed = 60,
 	},
 	autofarm = {
 		enabled = false,
+		noclip = true,
 		autosprinkler = false,
 		autodig = false,
 		fieldinterval = 10,
@@ -1094,9 +1098,10 @@ state.killSlide = function()
 	end
 
 	local rootPart = getRootPart()
-	if rootPart and humanoid.FloorMaterial ~= Enum.Material.Air then
+	if rootPart and (humanoid.FloorMaterial ~= Enum.Material.Air or os.clock() - (state.toytime or 0) > 8) then
 		local v = rootPart.AssemblyLinearVelocity
 		rootPart.AssemblyLinearVelocity = Vector3.new(0, v.Y, 0)
+		rootPart.AssemblyAngularVelocity = Vector3.zero
 	end
 end
 
@@ -1107,7 +1112,7 @@ stopMovement = function()
 		local rootPart = getRootPart()
 		humanoid:MoveTo(rootPart.Position)
 
-		if cfg.vars.movement ~= "Tween" and humanoid.WalkSpeed > 60 then
+		if cfg.vars.movement ~= "Tween" then
 			state.killSlide()
 		end
 
@@ -2309,6 +2314,21 @@ do
 				logger.toggle(mobileToggleButton.Visible)
 			end
 		end)
+
+		connections:Add("hideuikey", UserInputService.InputBegan:Connect(function(input)
+			if input.KeyCode ~= Enum.KeyCode.RightControl or UserInputService:GetFocusedTextBox() then
+				return
+			end
+
+			if mobileToggleButton then
+				state.mobiletoggle = mobileToggleButton.Visible
+				mobileToggleButton.Visible = not mobileToggleButton.Visible
+
+				if cfg.misc.console then
+					logger.toggle(mobileToggleButton.Visible)
+				end
+			end
+		end))
 	end
 
 	local UICorner5 = Instance.new("UICorner")
@@ -6895,6 +6915,7 @@ local useToyAt
 
 useToyAt = function(toyName, expectedPrompt, retried)
 	local toy = workspace.Toys[toyName]
+	state.toytime = os.clock()
 
 	if not (distanceTo(toy.Platform.Position) < 12) then
 		if not retried then
@@ -6992,8 +7013,8 @@ do
 			error("return", 0)
 		end
 
-		if cfg.vars.tweenspeed > 12 and _G.unlocktween ~= true then
-			cfg.vars.tweenspeed = 12
+		if cfg.vars.tweenspeed > 150 then
+			cfg.vars.tweenspeed = 150
 		elseif cfg.vars.tweenspeed < 1 then
 			cfg.vars.tweenspeed = 1
 		end
@@ -63796,6 +63817,7 @@ do
 					end
 
 					closePopups()
+
 					v127()
 					v134()
 				end)
@@ -64299,6 +64321,36 @@ do
 						stopMovement()
 					end
 				end, "autofarm", "enabled")
+
+				local noclipParts = {}
+
+				connections:Cancel("afnoclip")
+				connections:Add("afnoclip", RunService.PreSimulation:Connect(function()
+					local character = localPlayer.Character
+
+					if not character then
+						return
+					end
+
+					if cfg.autofarm.enabled and cfg.autofarm.noclip then
+						for _, part in ipairs(character:GetDescendants()) do
+							if part:IsA("BasePart") and part.CanCollide then
+								noclipParts[part] = true
+								part.CanCollide = false
+							end
+						end
+					elseif next(noclipParts) then
+						for part in pairs(noclipParts) do
+							if part.Parent then
+								part.CanCollide = true
+							end
+						end
+
+						table.clear(noclipParts)
+					end
+				end))
+
+				Farming.AddSwitch("No Clip While Autofarming", nil, "autofarm", "noclip")
 
 				controls["Auto Sprinkler"] = Farming.AddSwitch("Auto Sprinkler", function(n)
 					if n and not connections:Get("sprinklers") then
@@ -66673,22 +66725,139 @@ more accurate dodging]],
 					cfg.vars.walkspeed = 200
 				end
 
-				if cfg.vars.tweenspeed > 12 and _G.unlocktween ~= true then
-					cfg.vars.tweenspeed = 12
+				if cfg.vars.tweenspeed > 150 then
+					cfg.vars.tweenspeed = 150
 				end
 
 				Movement.AddSwitch("Enable Walk Speed", function(enabled)
 					if not enabled then
 						threads:Cancel("walkspeed")
 						connections:Cancel("antislide")
+						connections:Cancel("instantstop")
 					else
 						connections:Cancel("antislide")
-						connections:Add("antislide", RunService.Heartbeat:Connect(function()
+						connections:Cancel("instantstop")
+						local guard = function(dt)
 							local ok, humanoid = pcall(getHumanoid)
-							if ok and humanoid and cfg.vars.movement ~= "Tween" and humanoid.WalkSpeed > 60 and humanoid.MoveDirection.Magnitude < 0.1 then
+							local rootPart = ok and humanoid and getRootPart()
+
+							if not rootPart or humanoid.Health <= 0 or cfg.vars.movement == "Tween" then
+								state.lastZone = nil
+								state.lastPos = nil
+								return
+							end
+
+							dt = dt or 0.017
+							local speed = humanoid.WalkSpeed
+							local now = os.clock()
+							local hasInput = humanoid.MoveDirection.Magnitude > 0.1
+
+							-- no sliding at all: no input means no horizontal movement
+							if not hasInput then
 								state.killSlide()
 							end
-						end))
+
+							-- limit horizontal speed in the air after a normal jump
+							local hstate = humanoid:GetState()
+
+							if hstate == Enum.HumanoidStateType.Jumping then
+								state.jumptime = now
+							end
+
+							if cfg.vars.airlimit and speed > cfg.vars.airspeed and humanoid.FloorMaterial == Enum.Material.Air and now - (state.toytime or 0) > 8 then
+								if hstate == Enum.HumanoidStateType.Jumping or (hstate == Enum.HumanoidStateType.Freefall and now - (state.jumptime or 0) < 1.5) then
+									local vel = rootPart.AssemblyLinearVelocity
+									local horizontal = Vector3.new(vel.X, 0, vel.Z)
+
+									if horizontal.Magnitude > cfg.vars.airspeed then
+										local limited = horizontal.Unit * cfg.vars.airspeed
+										rootPart.AssemblyLinearVelocity = Vector3.new(limited.X, vel.Y, limited.Z)
+									end
+								end
+							end
+
+							-- keep the character inside the field it is farming
+							if not (cfg.vars.fieldlimit and cfg.autofarm.enabled) then
+								state.lastZone = nil
+								state.lastPos = rootPart.Position
+								return
+							end
+
+							if not state.zones or now - (state.zonesTime or 0) > 3 then
+								state.zones = workspace.FlowerZones:GetChildren()
+								state.zonesTime = now
+							end
+
+							local function inside(zone, point, margin)
+								local l = zone.CFrame:PointToObjectSpace(point)
+								return math.abs(l.X) <= zone.Size.X / 2 - margin and math.abs(l.Z) <= zone.Size.Z / 2 - margin and math.abs(l.Y) <= 40
+							end
+
+							local pos = rootPart.Position
+							local teleported = state.lastPos and (pos - state.lastPos).Magnitude > math.max(25, speed * dt * 3)
+							local zone = state.lastZone
+
+							if zone and (teleported or not zone.Parent) then
+								zone = nil
+							end
+
+							if zone then
+								-- going out on purpose (the script's own target is outside the field)?
+								local movingOut = hasInput and not inside(zone, humanoid.MoveToPoint, 0)
+
+								if movingOut then
+									zone = nil
+								else
+									local hx = zone.Size.X / 2 - 1
+									local hz = zone.Size.Z / 2 - 1
+									local vel = rootPart.AssemblyLinearVelocity
+									local l = zone.CFrame:PointToObjectSpace(pos)
+
+									-- already outside: put it back on the edge
+									if math.abs(l.X) > hx or math.abs(l.Z) > hz then
+										local clamped = zone.CFrame:PointToWorldSpace(Vector3.new(math.clamp(l.X, -hx, hx), l.Y, math.clamp(l.Z, -hz, hz)))
+										rootPart.CFrame = CFrame.new(clamped) * (rootPart.CFrame - rootPart.CFrame.Position)
+										rootPart.AssemblyLinearVelocity = Vector3.new(0, vel.Y, 0)
+									else
+										-- about to cross the edge: remove the outward speed before it happens
+										local lv = zone.CFrame:VectorToObjectSpace(Vector3.new(vel.X, 0, vel.Z))
+										local ahead = l + lv * dt * 3
+										local changed = false
+
+										if math.abs(ahead.X) > hx and (ahead.X * lv.X) > 0 then
+											lv = Vector3.new(0, 0, lv.Z)
+											changed = true
+										end
+
+										if math.abs(ahead.Z) > hz and (ahead.Z * lv.Z) > 0 then
+											lv = Vector3.new(lv.X, 0, 0)
+											changed = true
+										end
+
+										if changed then
+											local nv = zone.CFrame:VectorToWorldSpace(lv)
+											rootPart.AssemblyLinearVelocity = Vector3.new(nv.X, vel.Y, nv.Z)
+										end
+									end
+								end
+							end
+
+							if not zone then
+								for _, candidate in ipairs(state.zones) do
+									if candidate:IsA("BasePart") and inside(candidate, pos, 2) then
+										zone = candidate
+										break
+									end
+								end
+							end
+
+							state.lastZone = zone
+							state.lastPos = rootPart.Position
+						end
+
+						-- run before physics (stops momentum) and after it (catches anything left)
+						connections:Add("instantstop", RunService.PreSimulation:Connect(guard))
+						connections:Add("antislide", RunService.Heartbeat:Connect(guard))
 
 						threads:Add("walkspeed", function()
 							while task.wait(0.1) do
@@ -66722,6 +66891,10 @@ more accurate dodging]],
 					end
 				end, "vars", "walkspeedenabled")
 
+				Movement.AddSwitch("Stay Inside Field (Walk Speed)", nil, "vars", "fieldlimit")
+				Movement.AddSwitch("Limit Air Speed When Jumping", nil, "vars", "airlimit")
+				Movement.AddSlider("Air Speed Limit", nil, 30, 200, "vars", "airspeed", { Left = true })
+
 				local dynamicSpeedSwitch = Movement.AddSwitch("Dynamic Walk Speed", function(n)
 					if walkSpeedSlider then
 						walkSpeedSlider.SetTitle(n and "Maximum Walk Speed" or "Walk Speed")
@@ -66731,7 +66904,7 @@ more accurate dodging]],
 				end, "vars", "walkdynamic")
 
 				walkSpeedSlider = Movement.AddSlider("Walk Speed", nil, 30, 200, "vars", "walkspeed", { Left = true })
-				multiplierSlider = Movement.AddSlider("Walk Speed Multiplier", nil, 1, 2, "vars", "walkspeed2", { Left = true, Decimal = true })
+				multiplierSlider = Movement.AddSlider("Walk Speed Multiplier", nil, 1, 5, "vars", "walkspeed2", { Left = true, Decimal = true })
 
 				tweenSpeedSlider = Movement.AddSlider("Tween Speed", function()
 					if threads:Get("Autofarm") then
@@ -66742,7 +66915,7 @@ more accurate dodging]],
 							threads:Add("Autofarm", autofarmLoop)
 						end
 					end
-				end, 1, _G.unlocktween and 40 or 12, "vars", "tweenspeed", { Left = true })
+				end, 1, 150, "vars", "tweenspeed", { Left = true })
 
 				Movement.AddLabel("Speeds above 70 and 8 are not recommended")
 				Movement.AddLabel("If your character is sliding or stuck on ledges change it")
