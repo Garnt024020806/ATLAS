@@ -1624,7 +1624,7 @@ do
 		end
 	end))
 
-	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "ATLAS"
+	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "deobfuscated by skynex - .gg/syncrypt"
 	local uicolor = _G.uicolor and _G.uicolor or Color3.fromRGB(41, 74, 122)
 	local isDesktop = ScreenGui.AbsoluteSize.X >= 850 and ScreenGui.AbsoluteSize.Y >= 500
 
@@ -66769,7 +66769,7 @@ more accurate dodging]],
 					end
 				end, "vars", "walkdynamic")
 
-				Movement.AddSwitch("Unlock Speed Detectable", function(on)
+				Movement.AddSwitch("Unlock Speed (Detectable)", function(on)
 					if walkSpeedSlider and cfg.vars.walkspeed > (on and 200 or 90) then
 						walkSpeedSlider.Set(on and 200 or 90)
 					end
