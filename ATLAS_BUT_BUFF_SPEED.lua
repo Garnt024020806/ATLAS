@@ -67930,7 +67930,6 @@ more accurate dodging]],
 							warn(result)
 							ui.Notify("Config Error", "Failed to load config")
 						else
-							result.webhook = {} -- webhook url stays private
 							result.detected = {}
 
 							if result.toys then
@@ -68045,7 +68044,6 @@ more accurate dodging]],
 							end)
 						end
 
-						result.webhook = nil
 						result.detected = nil
 
 						if result.toys then
