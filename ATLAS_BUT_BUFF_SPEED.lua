@@ -425,6 +425,8 @@ local cfg = {
 	memorymatch = { blacklist = false, basic = false, mega = false, night = false, extreme = false },
 	misc = {
 		hidekey = "RightControl",
+		uiscale = false,
+		fontscale = false,
 		autorejoin2 = false,
 		anonymous = false,
 		mobiletoggle = false,
@@ -1578,8 +1580,8 @@ do
 		if dragState and (n.UserInputType == Enum.UserInputType.MouseMovement or n.UserInputType == Enum.UserInputType.Touch) then
 			for P, Z in pairs(dragState) do
 				if Z == "resize" or Z == "resize2" then
-					local l = n.Position.X - P.AbsolutePosition.X
-					local o = n.Position.Y - P.AbsolutePosition.Y
+					local l = (n.Position.X - P.AbsolutePosition.X) / (state.uiScale or 1)
+					local o = (n.Position.Y - P.AbsolutePosition.Y) / (state.uiScale or 1)
 					local p = Z == "resize" and vector2 or vector23
 
 					if l >= p.X and o >= p.Y then
@@ -1616,10 +1618,10 @@ do
 						end
 					end
 				elseif Z == "slider" then
-					P(n)
+					-- drag disabled: slider values are typed into the number box
 				else
 					local O = Z[2]
-					local l = n.Position - Z[1]
+					local l = (n.Position - Z[1]) / (state.uiScale or 1)
 					P.Position = UDim2.new(O.X.Scale, O.X.Offset + l.X, O.Y.Scale, O.Y.Offset + l.Y)
 				end
 			end
@@ -1949,9 +1951,13 @@ do
 		TextLabel3.Position = UDim2.new(0.5, 0, 0.5, -10)
 		TextLabel3.Size = UDim2.new(0, 0, 0, 20)
 		TextLabel3.Parent = Frame8
-		local TextLabel4 = Instance.new("TextLabel")
+		local TextLabel4 = Instance.new("TextBox")
 		TextLabel4.Name = "Value"
-		TextLabel4.BackgroundTransparency = 1
+		TextLabel4.BackgroundColor3 = Color3.new(0, 0, 0)
+		TextLabel4.BackgroundTransparency = 0.75
+		TextLabel4.BorderSizePixel = 0
+		TextLabel4.ClearTextOnFocus = true
+		TextLabel4.TextEditable = true
 		TextLabel4.Font = Enum.Font.GothamBold
 		TextLabel4.Text = "0"
 		TextLabel4.TextColor3 = Color3.new(0.784314, 0.784314, 0.784314)
@@ -3265,7 +3271,7 @@ do
 				local function v90(v91)
 					local v92 = math.clamp(v91.Position.X - clone5.AbsolutePosition.X, 0, clone5.AbsoluteSize.X)
 					local v93 = minValue + v92 / clone5.AbsoluteSize.X * (getMax() - minValue)
-					TweenService:Create(indicator, TweenInfo.new(0.08, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Size = UDim2.new(0, v92, 0, 20) }):Play()
+					TweenService:Create(indicator, TweenInfo.new(0.08, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Size = UDim2.new(0, v92 / (state.uiScale or 1), 0, 20) }):Play()
 					local text = decimal and math.round(v93 * 10) / 10 or math.floor(v93)
 					value.Text = text
 					configTable[configKey] = text
@@ -3286,9 +3292,12 @@ do
 					dragState[v90] = "slider"
 				end)
 
+				ui.BindSliderInput(clone5, value, v90, minValue, getMax)
+
 				sliderApi.Set = function(newValue)
 					local maxWidth = isDesktop and twoColumn and ImageLabel.AbsoluteSize.X * 0.5 - 47 - 5 - 10 - 15
 					maxWidth = maxWidth or ImageLabel.AbsoluteSize.X - 95 - 5 - 10 - 15
+					maxWidth = maxWidth / (state.uiScale or 1)
 					local clampedValue = math.clamp(tonumber(newValue) or 0, minValue, getMax())
 					TweenService:Create(indicator, TweenInfo.new(0.08, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Size = UDim2.new(0, (clampedValue - minValue) / (getMax() - minValue) * maxWidth, 0, 20) }):Play()
 					local text = decimal and math.round(clampedValue * 10) / 10 or math.floor(clampedValue)
@@ -3426,6 +3435,32 @@ do
 						Frame12:Destroy()
 					end)
 
+					local selLabels = {}
+
+					if multi then
+						local UnselectBtn = Instance.new("TextButton")
+						UnselectBtn.Name = "Unselect"
+						UnselectBtn.AutoButtonColor = false
+						UnselectBtn.BackgroundColor3 = color_4
+						UnselectBtn.BorderSizePixel = 0
+						UnselectBtn.Font = Enum.Font.GothamBold
+						UnselectBtn.Text = "Unselect"
+						UnselectBtn.TextColor3 = Color3.new(1, 1, 1)
+						UnselectBtn.TextSize = 13
+						UnselectBtn.Position = UDim2.new(0.5, -125, 1, -30)
+						UnselectBtn.Size = UDim2.new(0, 80, 0, 20)
+						UnselectBtn.Parent = Frame12
+						Instance.new("UICorner", UnselectBtn).CornerRadius = UDim.new(0, 4)
+
+						UnselectBtn.MouseButton1Click:Connect(function()
+							beeSelection[v81] = {}
+							for _, lbl in ipairs(selLabels) do
+								lbl.Visible = false
+							end
+							saveConfig()
+						end)
+					end
+
 					local teamColors = { None = Color3.fromRGB(27, 42, 53), Red = Color3.fromRGB(234, 75, 71), Blue = Color3.fromRGB(91, 159, 237) }
 
 					local beeTeams = {
@@ -3527,6 +3562,7 @@ do
 								if isSel or multi then
 									local TextLabel4 = Instance.new("TextLabel")
 									selLabel = TextLabel4
+									table.insert(selLabels, TextLabel4)
 									TextLabel4.Visible = isSel
 									TextLabel4.Name = "Selected"
 									TextLabel4.BackgroundTransparency = 1
@@ -3642,6 +3678,40 @@ do
 		end
 
 		return tabApi
+	end
+
+	-- Typed input for slider value boxes. Reuses each slider's own apply function via a synthetic pointer position.
+	ui.BindSliderInput = function(sliderFrame, valueBox, applyFn, minV, maxV)
+		if not valueBox or not valueBox:IsA("TextBox") then
+			return
+		end
+
+		local previous = valueBox.Text
+
+		valueBox.Focused:Connect(function()
+			previous = valueBox.Text
+		end)
+
+		valueBox.FocusLost:Connect(function()
+			local typed = tonumber(valueBox.Text)
+			valueBox.Text = previous
+
+			if not typed then
+				return
+			end
+
+			local lo = type(minV) == "function" and minV() or minV
+			local hi = type(maxV) == "function" and maxV() or maxV
+			local width = sliderFrame.AbsoluteSize.X
+
+			if width <= 0 or hi == lo then
+				return
+			end
+
+			local ratio = math.clamp((typed - lo) / (hi - lo), 0, 1)
+			local x = sliderFrame.AbsolutePosition.X + ratio * width + 0.0001 * width / (hi - lo)
+			applyFn({ Position = Vector3.new(x, 0, 0) })
+		end)
 	end
 
 	-- Sticker grid picker (keep / delete / stack). Icon + tooltip fields are UNVERIFIED guesses, falls back to text.
@@ -4342,6 +4412,8 @@ do
 					dragState[v79] = "slider"
 				end)
 
+				ui.BindSliderInput(clone3, value, v79, sliderMin, sliderMax)
+
 				local initialValue = itemConfig and itemConfig[2] or sliderMin
 				value.Text = initialValue
 
@@ -4384,6 +4456,8 @@ do
 
 					dragState[v77] = "slider"
 				end)
+
+				ui.BindSliderInput(clone3, value, v77, 0, 5)
 
 				local text2 = itemConfig and itemConfig[2] or 0
 				value.Text = text2
@@ -4449,6 +4523,8 @@ do
 
 					dragState[v78] = "slider"
 				end)
+
+				ui.BindSliderInput(clone3, value, v78, 1, 5)
 
 				local text2 = itemConfig and itemConfig[2] or 1
 				value.Text = text2
@@ -4519,6 +4595,8 @@ do
 
 					dragState[v77] = "slider"
 				end)
+
+				ui.BindSliderInput(clone3, value, v77, 1, 60)
 
 				local text2 = itemConfig and itemConfig[2] or 15
 				value.Text = text2
@@ -4759,6 +4837,8 @@ do
 						dragState[v77] = "slider"
 					end)
 
+					ui.BindSliderInput(clone3, value, v77, 1, 60)
+
 					local text2 = itemConfig and itemConfig[2] or 15
 					value.Text = text2
 					local v78 = TweenService
@@ -4986,6 +5066,8 @@ do
 
 					dragState[v78] = "slider"
 				end)
+
+				ui.BindSliderInput(clone3, value, v78, 1, 100)
 
 				local text2 = itemConfig and itemConfig[3] or 100
 				value.Text = text2
@@ -5256,6 +5338,8 @@ do
 					dragState[v91] = "slider"
 				end)
 
+				ui.BindSliderInput(clone3, value, v91, minValue, maxValue)
+
 				local sliderValue = statEntry and statEntry[3] or minValue
 				value.Text = sliderValue
 				TweenService:Create(indicator, TweenInfo.new(0.08, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Size = UDim2.new(0, (math.clamp(tonumber(sliderValue) or 0, minValue, maxValue) - minValue) / (maxValue - minValue) * clone3.AbsoluteSize.X, 0, 20) }):Play()
@@ -5499,6 +5583,7 @@ do
 		rbc = ui.AddTab("RBC", "http://www.roblox.com/asset/?id=113324128574355", true),
 		webhook = ui.AddTab("Webhook", "rbxassetid://10723426722", true),
 		config = ui.AddTab("Config", "rbxassetid://10734950309", true),
+		settings = ui.AddTab("Settings", "rbxassetid://10734950309", true),
 		debug = ui.AddTab("Debug", "rbxassetid://10709782845", true),
 	}
 
@@ -68141,9 +68226,6 @@ more accurate dodging]],
 					end
 				end, nil, nil, { Clear = true, Size = 200 })
 
-				local hideKeys = { "RightControl", "LeftControl", "RightShift", "LeftShift", "RightAlt", "LeftAlt", "Insert", "Delete", "Home", "End", "PageUp", "PageDown", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12" }
-				Settings.AddDropdown("Hide UI Key", hideKeys, nil, function() end, "misc", "hidekey", { Width = 250 })
-
 				connections:Add("hideuikey", UserInputService.InputBegan:Connect(function(input, processed)
 					if processed or input.UserInputType ~= Enum.UserInputType.Keyboard then
 						return
@@ -68162,6 +68244,127 @@ more accurate dodging]],
 				end))
 
 				Settings.Toggle(true, true)
+			end
+
+			do
+				local settingsTab = controls.settings
+				local UiFolder = settingsTab.AddFolder("UI Settings", true)
+				local fontOriginal = setmetatable({}, { __mode = "k" })
+				local applyToken = 0
+				local scaledWindows = { Modal = true, BQGrid = true, StickerPicker = true }
+
+				local UI_MIN, UI_MAX = 80, 150
+				local FONT_MIN, FONT_MAX = 90, 150
+
+				-- default UI size follows the screen size (baseline 1600x900 = 100%), font default stays 100
+				local function autoUiDefault()
+					local size = ScreenGui.AbsoluteSize
+
+					if size.X <= 0 or size.Y <= 0 then
+						return 100
+					end
+
+					return math.clamp(math.floor(math.min(size.X / 1600, size.Y / 900) * 100 + 0.5), UI_MIN, UI_MAX)
+				end
+
+				local function autoFontDefault()
+					return 100
+				end
+
+				cfg.misc.uiscale = math.clamp(tonumber(cfg.misc.uiscale) or autoUiDefault(), UI_MIN, UI_MAX)
+				cfg.misc.fontscale = math.clamp(tonumber(cfg.misc.fontscale) or autoFontDefault(), FONT_MIN, FONT_MAX)
+
+				local function getUiScale()
+					return math.clamp(cfg.misc.uiscale / 100, UI_MIN / 100, UI_MAX / 100)
+				end
+
+				local function getFontScale()
+					return math.clamp(cfg.misc.fontscale / 100, FONT_MIN / 100, FONT_MAX / 100)
+				end
+
+				local function applyFont(obj)
+					if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) or obj.TextScaled then
+						return
+					end
+
+					local base = fontOriginal[obj]
+
+					if not base then
+						base = obj.TextSize
+						fontOriginal[obj] = base
+					end
+
+					obj.TextSize = math.max(8, math.floor(base * getFontScale() + 0.5))
+				end
+
+				local function applyScaleTo(frame)
+					local scaleObj = frame:FindFirstChildOfClass("UIScale")
+
+					if not scaleObj then
+						scaleObj = Instance.new("UIScale")
+						scaleObj.Name = "AtlasScale"
+						scaleObj.Parent = frame
+					end
+
+					scaleObj.Scale = getUiScale()
+				end
+
+				local function applyAll()
+					state.uiScale = getUiScale()
+					applyScaleTo(mobileToggleButton)
+
+					for _, child in ipairs(ScreenGui:GetChildren()) do
+						if child:IsA("GuiObject") and scaledWindows[child.Name] then
+							applyScaleTo(child)
+						end
+					end
+
+					for _, obj in ipairs(ScreenGui:GetDescendants()) do
+						applyFont(obj)
+					end
+				end
+
+				local function scheduleApply()
+					applyToken = applyToken + 1
+					local myToken = applyToken
+
+					task.delay(0.15, function()
+						if myToken == applyToken then
+							applyAll()
+						end
+					end)
+				end
+
+				connections:Add("uisettingsadd", ScreenGui.DescendantAdded:Connect(function(obj)
+					if obj.Parent == ScreenGui and obj:IsA("GuiObject") and scaledWindows[obj.Name] then
+						applyScaleTo(obj)
+					end
+
+					task.defer(applyFont, obj)
+				end))
+
+				local uiSlider = UiFolder.AddSlider("UI Size (%)", scheduleApply, UI_MIN, UI_MAX, "misc", "uiscale", { Left = true })
+				local fontSlider = UiFolder.AddSlider("Font Size (%)", scheduleApply, FONT_MIN, FONT_MAX, "misc", "fontscale", { Left = true })
+
+				UiFolder.AddButton("Reset UI Size And Font (Auto)", function()
+					local defaultUi, defaultFont = autoUiDefault(), autoFontDefault()
+					if uiSlider and uiSlider.Set then
+						uiSlider.Set(defaultUi)
+					end
+					if fontSlider and fontSlider.Set then
+						fontSlider.Set(defaultFont)
+					end
+					cfg.misc.uiscale = defaultUi
+					cfg.misc.fontscale = defaultFont
+					saveConfig()
+					applyAll()
+				end, 200)
+
+				local hideKeys = { "RightControl", "LeftControl", "RightShift", "LeftShift", "RightAlt", "LeftAlt", "Insert", "Delete", "Home", "End", "PageUp", "PageDown", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12" }
+				UiFolder.AddDropdown("Hide UI Key", hideKeys, nil, function() end, "misc", "hidekey", { Width = 250 })
+
+				UiFolder.Toggle(true, true)
+				applyAll()
 			end
 
 			do
