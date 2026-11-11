@@ -688,6 +688,8 @@ local cfg = {
 		stackselect = false,
 		discardstickers = false,
 		discardselect = false,
+		discarddonated = false,
+		keepselect = false,
 		stickerprinter = false,
 		printereggs = false,
 		nectarcondenser = false,
@@ -45321,16 +45323,84 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			end
 		end
 
+		local DONATED_DRY_RUN = false -- true = only log, do not delete
+		local stickerCacheLogged = false
+
+		-- collect stickers placed on the hive (never delete these). UNVERIFIED in game: candidate cache keys are guesses.
+		local function getPlacedSet(stickerCache)
+			local placed = {}
+			local count = 0
+
+			if not stickerCacheLogged then
+				stickerCacheLogged = true
+				local keys = {}
+				pcall(function()
+					for k in pairs(stickerCache) do
+						table.insert(keys, tostring(k))
+					end
+				end)
+				logger.log("Sticker cache keys:", table.concat(keys, ", "))
+			end
+
+			local function mark(e)
+				if e == nil then
+					return
+				end
+				placed[e] = true
+				count += 1
+				if type(e) == "table" then
+					local id = e.ID or e.Id
+					if id ~= nil then
+						placed[id] = true
+					end
+				end
+			end
+
+			for _, key in ipairs({ "Hive", "Placed", "Placements", "HiveStickers" }) do
+				pcall(function()
+					local t = stickerCache[key]
+					if type(t) == "table" then
+						for _, e in pairs(t) do
+							if type(e) == "table" and e.Sticker ~= nil then
+								mark(e.Sticker)
+							end
+							mark(e)
+						end
+					end
+				end)
+			end
+
+			return placed, count
+		end
+
+		local function isPlaced(sticker, placed)
+			if placed[sticker] then
+				return true
+			end
+			local ok, id = pcall(function()
+				return sticker.ID or sticker.Id
+			end)
+			if ok and id ~= nil and placed[id] then
+				return true
+			end
+			local ok2, flag = pcall(function()
+				return sticker.Placed or sticker.OnHive or sticker.Slot
+			end)
+			return ok2 and flag ~= nil and flag ~= false
+		end
+
 		local function discardStickers()
 			local selectedCount = 0
+			local donatedMode = cfg.toys.discarddonated and true or false
+			local listMode = cfg.toys.discardstickers and true or false
 
-			if cfg.toys.discardselect then
+			if listMode and cfg.toys.discardselect then
 				for k in pairs(cfg.toys.discardselect) do
 					selectedCount += 1
 				end
 			end
 
-			if selectedCount == 0 then
+			if listMode and selectedCount == 0 and not donatedMode then
 				controls["Auto Delete Stickers"].Set(false)
 				ui.Notify("Auto Delete Stickers", "No stickers selected")
 				return
@@ -45338,24 +45408,48 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 
 			inventory.time.discardstickers = os.clock()
 			local Stickers = gameApi:Cache("Stickers")
+			local keep = cfg.toys.keepselect or {}
+			local selected = (listMode and cfg.toys.discardselect) or {}
+			local stackMap = nil
 
-			for _, sticker in ipairs(Stickers.Book) do
-				local stickerName = secureCall(sticker.GetTypeName, sticker)
-
-				if not (not stickerName or not (not string.find(stickerName, "Star Sign") and not string.find(stickerName, "Cub Skin") and cfg.toys.discardselect[stickerName])) then
-					logger.log("Discarding", stickerName)
-					gameApi:Event("StickerDiscard", sticker)
-					task.wait(0.25)
+			if donatedMode then
+				stackMap = secureCall(gameApi.StickerStack.GetStickerStackMap, gameApi:Cache())
+				if not stackMap then
+					logger.warn("Discard Donated: no stack map, donated mode skipped")
 				end
 			end
 
-			for _, sticker in ipairs(Stickers.Inbox) do
-				local stickerName = secureCall(sticker.GetTypeName, sticker)
+			local placed, placedCount = getPlacedSet(Stickers)
+			logger.log("Discard: hive-placed entries known:", placedCount)
 
-				if not (not stickerName or not (not string.find(stickerName, "Star Sign") and not string.find(stickerName, "Cub Skin") and cfg.toys.discardselect[stickerName])) then
-					logger.log("Discarding", stickerName)
-					gameApi:Event("StickerDiscard", sticker)
-					task.wait(0.25)
+			for _, category in ipairs({ "Book", "Inbox" }) do
+				local list = Stickers[category]
+				local snapshot = {}
+				if list then
+					for i, v in ipairs(list) do
+						snapshot[i] = v
+					end
+				end
+
+				for _, sticker in ipairs(snapshot) do
+					local stickerName = secureCall(sticker.GetTypeName, sticker)
+
+					if stickerName
+						and not string.find(stickerName, "Star Sign")
+						and not string.find(stickerName, "Cub Skin")
+						and not string.find(stickerName, "Hive Skin")
+						and not keep[stickerName]
+						and not isPlaced(sticker, placed)
+						and (selected[stickerName] or (stackMap and stackMap[stickerName] ~= nil))
+					then
+						if DONATED_DRY_RUN then
+							logger.log("[DRY RUN] Would discard", stickerName, category)
+						else
+							logger.log("Discarding", stickerName, category)
+							gameApi:Event("StickerDiscard", sticker)
+							task.wait(0.25)
+						end
+					end
 				end
 			end
 		end
@@ -55434,7 +55528,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 				end
 			end
 
-			if cfg.toys.discardstickers then
+			if cfg.toys.discardstickers or cfg.toys.discarddonated then
 				local ok4 = not inventory.time.discardstickers
 
 				if not ok4 then
@@ -66007,6 +66101,35 @@ which bees and get all 3 targets if
 					ui.Notify("Auto Delete Stickers", "Leaves added to list")
 				end, 140)
 
+				controls["Discard Donated Stickers"] = Stickers.AddSwitch("Discard Donated Stickers", nil, "toys", "discarddonated")
+				local keepDropdown = nil
+
+				keepDropdown = Stickers.AddDropdown("Manage Keep Stickers", nil, nil, function(n)
+					cfg.toys.keepselect[n] = nil
+					keepDropdown.Remove(n)
+					saveConfig()
+				end, nil, nil, { Noupdate = true })
+
+				if cfg.toys.keepselect then
+					for k in pairs(cfg.toys.keepselect) do
+						keepDropdown.Add(k)
+					end
+				end
+
+				Stickers.AddTextBox("Add Keep Sticker", function(keepInput)
+					if not cfg.toys.keepselect then
+						cfg.toys.keepselect = {}
+					end
+
+					if keepInput == "" then
+						return
+					end
+					local keepName = string.gsub(keepInput, "\n", "")
+					cfg.toys.keepselect[keepName] = true
+					keepDropdown.Add(keepName)
+					saveConfig()
+				end, nil, true, { Clear = true, Size = 200 })
+
 				controls["Auto Sticker Printer"] = Stickers.AddSwitch("Auto Sticker Printer", nil, "toys", "stickerprinter")
 
 				Stickers.AddDropdown("Egg Types", {
@@ -67211,6 +67334,23 @@ more accurate dodging]],
 
 				-- dispenser access gate: toys we can verify by name in workspace.Toys (+ bee count rules the bot already uses)
 				local DISABLE_LOCKED_DISPENSERS = true -- false = only warn, do not touch the config
+
+				-- same rule the script uses for state.dapper: shop door open = CanCollide false
+				local function dapperShopLocked()
+					if state.dapper then
+						return false
+					end
+
+					local gatesFolder = workspace:FindFirstChild("Gates")
+					local shopGate = gatesFolder and gatesFolder:FindFirstChild("Dapper Shop")
+					local door = shopGate and shopGate:FindFirstChild("Door")
+
+					if not door then
+						return false -- cannot tell, do not block
+					end
+
+					return door.CanCollide == true
+				end
 				local dispenserGate = {
 					{ section = "dispensers", key = "honey", toy = "Honey Dispenser" },
 					{ section = "dispensers", key = "antpass", toy = "Free Ant Pass Dispenser", bees = 20 },
@@ -67218,6 +67358,7 @@ more accurate dodging]],
 					{ section = "dispensers", key = "glue", toy = "Glue Dispenser", bees = 20 },
 					{ section = "dispensers", key = "royaljelly", toy = "Free Royal Jelly Dispenser" },
 					{ section = "toys", key = "stickerstacker", toy = "Sticker Stack" },
+					{ section = "misc", key = "bqbuy", toy = "Dapper Bear Shop", locked = dapperShopLocked },
 				}
 
 				-- returns list of enabled features the player cannot press right now; clears them in data when allowed
@@ -67229,10 +67370,17 @@ more accurate dodging]],
 						local section = type(data) == "table" and data[gate.section]
 
 						if type(section) == "table" and section[gate.key] == true then
-							local toyMissing = toysFolder ~= nil and not toysFolder:FindFirstChild(gate.toy)
-							local tooFewBees = gate.bees ~= nil and type(state.bees) == "number" and state.bees < gate.bees
+							local isLocked
 
-							if toyMissing or tooFewBees then
+							if gate.locked then
+								isLocked = gate.locked()
+							else
+								local toyMissing = toysFolder ~= nil and not toysFolder:FindFirstChild(gate.toy)
+								local tooFewBees = gate.bees ~= nil and type(state.bees) == "number" and state.bees < gate.bees
+								isLocked = toyMissing or tooFewBees
+							end
+
+							if isLocked then
 								table.insert(blocked, gate.toy)
 
 								if clear then
