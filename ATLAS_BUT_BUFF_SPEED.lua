@@ -2696,7 +2696,7 @@ do
 						ui.Notify(text, "You must enable the red cannon")
 					elseif not isOn and options and options.Group and not localPlayer:IsInGroup(3982592) then
 						ui.Notify(text, "You must join the bss group")
-					elseif not isOn and options and options.Bee and not cfg.hive.bee then
+					elseif not isOn and options and options.Bee and not cfg.hive.bee and not (type(cfg.hive.bees) == "table" and next(cfg.hive.bees) ~= nil) then
 						ui.Notify(text, "No bee selected")
 					else
 						isOn = not isOn
@@ -3346,7 +3346,7 @@ do
 				end)
 			end
 
-			folderApi.AddBeeModal = function(text, configKey, v81)
+			folderApi.AddBeeModal = function(text, configKey, v81, multi)
 				local TextButton3 = Instance.new("TextButton")
 				TextButton3.Name = "Button"
 				TextButton3.AutoButtonColor = false
@@ -3507,8 +3507,19 @@ do
 									TextLabel4.Parent = ScrollingFrame4
 								end
 
-								if not (not beeSelection or beeSelection[v81] ~= i .. "," .. i2) then
+								local posKey = i .. "," .. i2
+								local isSel = false
+								if multi then
+									isSel = beeSelection and type(beeSelection[v81]) == "table" and beeSelection[v81][posKey] == true or false
+								else
+									isSel = beeSelection and beeSelection[v81] == posKey or false
+								end
+								local selLabel = nil
+
+								if isSel or multi then
 									local TextLabel4 = Instance.new("TextLabel")
+									selLabel = TextLabel4
+									TextLabel4.Visible = isSel
 									TextLabel4.Name = "Selected"
 									TextLabel4.BackgroundTransparency = 1
 									TextLabel4.Font = Enum.Font.GothamBold
@@ -3524,6 +3535,21 @@ do
 								end
 
 								ImageButton2.MouseButton1Click:Connect(function()
+									if multi then
+										if type(beeSelection[v81]) ~= "table" then
+											beeSelection[v81] = {}
+										end
+										if beeSelection[v81][posKey] then
+											beeSelection[v81][posKey] = nil
+										else
+											beeSelection[v81][posKey] = true
+										end
+										if selLabel then
+											selLabel.Visible = beeSelection[v81][posKey] == true
+										end
+										saveConfig()
+										return
+									end
 									beeSelection[v81] = i .. "," .. i2
 									saveConfig()
 									Frame12:Destroy()
@@ -43225,6 +43251,48 @@ do
 		end
 	end
 
+	-- Multi bee: runs a single-bee feature once per bee in cfg.hive.bees (sorted by column,row).
+	-- Empty list -> old behaviour (cfg.hive.bee). Overwrites cfg.hive.bee with the bee being processed.
+	state.multiBee = false
+	state.multiBeeWrap = function(inner)
+		return function(...)
+			local list = {}
+
+			if type(cfg.hive.bees) == "table" then
+				for pos, on in pairs(cfg.hive.bees) do
+					if on and type(pos) == "string" and state.hive and state.hive.Cells:FindFirstChild("C" .. pos) then
+						table.insert(list, pos)
+					end
+				end
+			end
+
+			if #list == 0 then
+				state.multiBee = false
+				return inner(...)
+			end
+
+			table.sort(list, function(a, b)
+				local ax, ay = string.match(a, "(%d+),(%d+)")
+				local bx, by = string.match(b, "(%d+),(%d+)")
+				ax, ay, bx, by = tonumber(ax), tonumber(ay), tonumber(bx), tonumber(by)
+				if ax ~= bx then
+					return ax < bx
+				end
+				return ay < by
+			end)
+
+			state.multiBee = true
+
+			for index, pos in ipairs(list) do
+				cfg.hive.bee = pos
+				logger.log("Multi bee " .. index .. "/" .. #list .. ": " .. pos)
+				inner(...)
+			end
+
+			state.multiBee = false
+		end
+	end
+
 	autoGiftedBasic = function()
 		local finished = nil
 
@@ -43418,14 +43486,14 @@ do
 
 						if not beeData.Radiation then
 							if not cfg.hive.neonberry then
-								controls["Auto Mutations"].Set(false)
+								if not state.multiBee then controls["Auto Mutations"].Set(false) end
 								ui.Notify("Auto Mutations", "Bee is not radioactive")
 								finished = true
 								return
 							end
 
 							if not inventory:Has({ Neonberry = 1 }) then
-								controls["Auto Mutations"].Set(false)
+								if not state.multiBee then controls["Auto Mutations"].Set(false) end
 								ui.Notify("Auto Mutations", "Bee is not radioactive and no neonberries")
 								finished = true
 								return
@@ -43728,14 +43796,14 @@ do
 				if not fruit then
 					ui.Notify("Auto Gifted Bee", beeName .. " Bee has no favorite fruit")
 					finished = true
-					controls["Auto Gifted Bee"].Set(false)
+					if not state.multiBee then controls["Auto Gifted Bee"].Set(false) end
 					return
 				end
 
 				if cell:FindFirstChild("GiftedCell") then
 					ui.Notify("Auto Gifted Bee", beeName .. " Bee is already gifted")
 					finished = true
-					controls["Auto Gifted Bee"].Set(false)
+					if not state.multiBee then controls["Auto Gifted Bee"].Set(false) end
 					return
 				end
 
@@ -43781,7 +43849,7 @@ do
 						logger.log("Auto Gifted Bee: " .. beeName .. " Bee is now gifted")
 						ui.Notify("Auto Gifted Bee", beeName .. " Bee is now gifted")
 						finished = true
-						controls["Auto Gifted Bee"].Set(false)
+						if not state.multiBee then controls["Auto Gifted Bee"].Set(false) end
 						return
 					end
 				end
@@ -66937,6 +67005,7 @@ which bees and get all 3 targets if
 				local hive = cfg.hive
 				local Hive = toys.AddFolder("Hive", true)
 				Hive.AddBeeModal("Select Position", "hive", "bee")
+				Hive.AddBeeModal("Select Multi Bees", "hive", "bees", true)
 
 				local beeTypes = {
 					"Basic",
@@ -66993,7 +67062,7 @@ which bees and get all 3 targets if
 							return
 						end
 
-						threads:Add("Auto Royal Jelly", autoRoyalJelly)
+						threads:Add("Auto Royal Jelly", state.multiBeeWrap(autoRoyalJelly))
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true })
@@ -67019,7 +67088,7 @@ which bees and get all 3 targets if
 							return
 						end
 
-						threads:Add("Auto Gifted Basic", autoGiftedBasic)
+						threads:Add("Auto Gifted Basic", state.multiBeeWrap(autoGiftedBasic))
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true })
@@ -67041,7 +67110,7 @@ which bees and get all 3 targets if
 							return
 						end
 
-						threads:Add("Auto Gifted Bee", state.autoGiftedBee)
+						threads:Add("Auto Gifted Bee", state.multiBeeWrap(state.autoGiftedBee))
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true, Tooltip = "Feeds the selected bee its favorite fruit\nuntil it becomes gifted" })
@@ -67065,7 +67134,7 @@ which bees and get all 3 targets if
 							return
 						end
 
-						threads:Add("Auto Mutations", autoMutations)
+						threads:Add("Auto Mutations", state.multiBeeWrap(autoMutations))
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true })
