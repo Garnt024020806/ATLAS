@@ -2696,7 +2696,7 @@ do
 						ui.Notify(text, "You must enable the red cannon")
 					elseif not isOn and options and options.Group and not localPlayer:IsInGroup(3982592) then
 						ui.Notify(text, "You must join the bss group")
-					elseif not isOn and options and options.Bee and not cfg.hive.bee and not (type(cfg.hive.bees) == "table" and next(cfg.hive.bees) ~= nil) then
+					elseif not isOn and options and options.Bee and not (type(cfg.hive.bees) == "table" and next(cfg.hive.bees) ~= nil) and not (type(cfg.hive.bees) ~= "table" and cfg.hive.bee) then
 						ui.Notify(text, "No bee selected")
 					else
 						isOn = not isOn
@@ -3366,6 +3366,14 @@ do
 				TextButton3.MouseButton1Click:Connect(function()
 					local beeSelection = configKey and cfg[configKey]
 					local beeModels = ReplicatedStorage.BeeModels
+
+					-- multi mode: migrate the old single bee into the multi list the first time
+					if multi and beeSelection and type(beeSelection[v81]) ~= "table" then
+						beeSelection[v81] = {}
+						if type(beeSelection.bee) == "string" then
+							beeSelection[v81][beeSelection.bee] = true
+						end
+					end
 					local Modal = ScreenGui:FindFirstChild("Modal")
 
 					if Modal then
@@ -43254,7 +43262,7 @@ do
 	-- Multi bee: runs a single-bee feature once per bee in cfg.hive.bees (sorted by column,row).
 	-- Empty list -> old behaviour (cfg.hive.bee). Overwrites cfg.hive.bee with the bee being processed.
 	state.multiBee = false
-	state.multiBeeWrap = function(inner)
+	state.multiBeeWrap = function(inner, controlName)
 		return function(...)
 			local list = {}
 
@@ -43268,6 +43276,13 @@ do
 
 			if #list == 0 then
 				state.multiBee = false
+
+				if type(cfg.hive.bees) == "table" then
+					ui.Notify(controlName, "No bee selected")
+					controls[controlName].Set(false)
+					return
+				end
+
 				return inner(...)
 			end
 
@@ -67004,8 +67019,7 @@ which bees and get all 3 targets if
 			do
 				local hive = cfg.hive
 				local Hive = toys.AddFolder("Hive", true)
-				Hive.AddBeeModal("Select Position", "hive", "bee")
-				Hive.AddBeeModal("Select Multi Bees", "hive", "bees", true)
+				Hive.AddBeeModal("Select Position", "hive", "bees", true)
 
 				local beeTypes = {
 					"Basic",
@@ -67062,7 +67076,7 @@ which bees and get all 3 targets if
 							return
 						end
 
-						threads:Add("Auto Royal Jelly", state.multiBeeWrap(autoRoyalJelly))
+						threads:Add("Auto Royal Jelly", state.multiBeeWrap(autoRoyalJelly, "Auto Royal Jelly"))
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true })
@@ -67088,7 +67102,7 @@ which bees and get all 3 targets if
 							return
 						end
 
-						threads:Add("Auto Gifted Basic", state.multiBeeWrap(autoGiftedBasic))
+						threads:Add("Auto Gifted Basic", state.multiBeeWrap(autoGiftedBasic, "Auto Gifted Basic"))
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true })
@@ -67110,7 +67124,7 @@ which bees and get all 3 targets if
 							return
 						end
 
-						threads:Add("Auto Gifted Bee", state.multiBeeWrap(state.autoGiftedBee))
+						threads:Add("Auto Gifted Bee", state.multiBeeWrap(state.autoGiftedBee, "Auto Gifted Bee"))
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true, Tooltip = "Feeds the selected bee its favorite fruit\nuntil it becomes gifted" })
@@ -67134,7 +67148,7 @@ which bees and get all 3 targets if
 							return
 						end
 
-						threads:Add("Auto Mutations", state.multiBeeWrap(autoMutations))
+						threads:Add("Auto Mutations", state.multiBeeWrap(autoMutations, "Auto Mutations"))
 						controls["Stop Everything"].Set(true)
 					end
 				end, nil, nil, { Bee = true })
