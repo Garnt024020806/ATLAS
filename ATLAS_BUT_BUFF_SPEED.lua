@@ -67209,7 +67209,47 @@ more accurate dodging]],
 					end
 				end, nil, nil, { Clear = true, Size = 200 })
 
+				-- dispenser access gate: toys we can verify by name in workspace.Toys (+ bee count rules the bot already uses)
+				local DISABLE_LOCKED_DISPENSERS = true -- false = only warn, do not touch the config
+				local dispenserGate = {
+					{ section = "dispensers", key = "honey", toy = "Honey Dispenser" },
+					{ section = "dispensers", key = "antpass", toy = "Free Ant Pass Dispenser", bees = 20 },
+					{ section = "dispensers", key = "robopass", toy = "Free Robo Pass Dispenser" },
+					{ section = "dispensers", key = "glue", toy = "Glue Dispenser", bees = 20 },
+					{ section = "dispensers", key = "royaljelly", toy = "Free Royal Jelly Dispenser" },
+					{ section = "toys", key = "stickerstacker", toy = "Sticker Stack" },
+				}
+
+				-- returns list of enabled features the player cannot press right now; clears them in data when allowed
+				local function checkDispenserAccess(data, clear)
+					local blocked = {}
+					local toysFolder = workspace:FindFirstChild("Toys")
+
+					for _, gate in ipairs(dispenserGate) do
+						local section = type(data) == "table" and data[gate.section]
+
+						if type(section) == "table" and section[gate.key] == true then
+							local toyMissing = toysFolder ~= nil and not toysFolder:FindFirstChild(gate.toy)
+							local tooFewBees = gate.bees ~= nil and type(state.bees) == "number" and state.bees < gate.bees
+
+							if toyMissing or tooFewBees then
+								table.insert(blocked, gate.toy)
+
+								if clear then
+									section[gate.key] = false
+								end
+							end
+						end
+					end
+
+					return blocked
+				end
+
 				Settings.AddButton("Export Config To Clipboard", function()
+					if state.config == config2 then
+						pcall(saveConfig) -- flush live multi selects (hive/sticker) before reading the file
+					end
+
 					if not isfile("atlas/" .. config2 .. ".json") then
 						ui.Notify("Config", "Config not found")
 					else
@@ -67219,10 +67259,13 @@ more accurate dodging]],
 							warn(result)
 							ui.Notify("Config Error", "Failed to load config")
 						else
-							result.webhook = {}
+							result.webhook = {} -- webhook url stays private
 							result.detected = {}
-							result.toys.stackselect = false
-							result.toys.discardselect = false
+
+							if result.toys then
+								result.toys.stackselect = false -- stacker list is per-inventory, do not export
+							end
+
 							setclipboard(HttpService:JSONEncode(result))
 							ui.Notify("Config", "Exported config " .. config2 .. " to clipboard")
 						end
@@ -67251,6 +67294,23 @@ more accurate dodging]],
 					if not isfile("atlas/" .. config2 .. ".json") then
 						ui.Notify("Config", "Config not found")
 					else
+						local readOk, loadData = pcall(function()
+							return HttpService:JSONDecode(readfile("atlas/" .. config2 .. ".json"))
+						end)
+
+						if readOk and type(loadData) == "table" then
+							local blockedToys = checkDispenserAccess(loadData, DISABLE_LOCKED_DISPENSERS)
+
+							if #blockedToys > 0 then
+								if DISABLE_LOCKED_DISPENSERS then
+									writefile("atlas/" .. config2 .. ".json", HttpService:JSONEncode(loadData))
+									ui.Notify("Config", "Cannot reach, disabled before load:\n" .. table.concat(blockedToys, ", "))
+								else
+									ui.Notify("Config Warning", "Cannot reach:\n" .. table.concat(blockedToys, ", "))
+								end
+							end
+						end
+
 						writefile("atlas-" .. localPlayer.Name .. ".json", config2 .. ".json")
 						task.wait(0.1)
 
@@ -67319,10 +67379,6 @@ more accurate dodging]],
 
 						if result.toys then
 							result.toys.stackselect = nil
-						end
-
-						if result.toys then
-							result.toys.discardselect = nil
 						end
 
 						local add = configDropdown.Add
