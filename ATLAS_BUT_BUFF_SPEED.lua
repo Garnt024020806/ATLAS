@@ -3610,11 +3610,522 @@ do
 		return tabApi
 	end
 
+	-- Sticker grid picker (keep / delete / stack). Icon + tooltip fields are UNVERIFIED guesses, falls back to text.
+	local stickerPickerLogged = false
+
+	local function resolveStickerIcon(name, def)
+		if type(def) == "table" then
+			for _, key in ipairs({ "Icon", "Texture", "Image", "Decal", "Thumbnail" }) do
+				local v = def[key]
+				if type(v) == "string" and v ~= "" then
+					return v
+				end
+			end
+		end
+		local found = nil
+		pcall(function()
+			local folder = ReplicatedStorage.Stickers:FindFirstChild("Icons")
+			local item = folder and folder:FindFirstChild(name)
+			if item then
+				found = item.Texture or item.Image
+			end
+		end)
+		return found
+	end
+
+	local function resolveStickerTip(def)
+		if type(def) == "table" then
+			for _, key in ipairs({ "Tooltip", "ToolTip", "Description", "Desc", "Text", "Effect" }) do
+				local v = def[key]
+				if type(v) == "string" and v ~= "" then
+					return v
+				end
+			end
+		end
+		return nil
+	end
+
+	ui.StickerPicker = function(title, cfgKey)
+		local old = ScreenGui:FindFirstChild("StickerPicker")
+		if old then
+			old:Destroy()
+		end
+
+		local okTypes, types = pcall(function()
+			return secureCall(require(ReplicatedStorage.Stickers.StickerTypes).GetTypes)
+		end)
+		if not okTypes or type(types) ~= "table" then
+			ui.Notify(title, "Cannot load sticker list")
+			return
+		end
+
+		if type(cfg.toys[cfgKey]) ~= "table" then
+			cfg.toys[cfgKey] = {}
+		end
+		local selected = cfg.toys[cfgKey]
+
+		local names = {}
+		for name, def in pairs(types) do
+			if type(name) == "string" and not string.find(name, "Star Sign") and not string.find(name, "Cub Skin") and not string.find(name, "Hive Skin") then
+				table.insert(names, name)
+			end
+		end
+		table.sort(names)
+
+		if not stickerPickerLogged then
+			stickerPickerLogged = true
+			local first = names[1] and types[names[1]]
+			local keys = {}
+			if type(first) == "table" then
+				for k in pairs(first) do
+					table.insert(keys, tostring(k))
+				end
+			end
+			logger.log("StickerPicker def fields:", table.concat(keys, ", "))
+		end
+
+		local win = Instance.new("Frame")
+		win.Name = "StickerPicker"
+		win.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
+		win.BorderSizePixel = 0
+		win.Position = UDim2.new(0.5, -150, 0.5, -268)
+		win.Size = UDim2.new(0, 300, 0, 536)
+		win.ZIndex = 50
+		win.Parent = ScreenGui
+		Instance.new("UICorner", win).CornerRadius = UDim.new(0, 4)
+
+		local bar = Instance.new("TextLabel")
+		bar.BackgroundColor3 = Color3.fromRGB(38, 62, 120)
+		bar.BorderSizePixel = 0
+		bar.Size = UDim2.new(1, 0, 0, 28)
+		bar.Font = Enum.Font.GothamBold
+		bar.TextSize = 14
+		bar.TextColor3 = Color3.new(1, 1, 1)
+		bar.TextXAlignment = Enum.TextXAlignment.Left
+		bar.Text = "  " .. title
+		bar.ZIndex = 51
+		bar.Parent = win
+
+		local search = Instance.new("TextBox")
+		search.BackgroundColor3 = Color3.fromRGB(55, 58, 66)
+		search.BorderSizePixel = 0
+		search.Position = UDim2.new(0, 75, 0, 36)
+		search.Size = UDim2.new(0, 150, 0, 22)
+		search.Font = Enum.Font.GothamBold
+		search.TextSize = 12
+		search.TextColor3 = Color3.new(1, 1, 1)
+		search.PlaceholderText = "Search"
+		search.PlaceholderColor3 = Color3.fromRGB(150, 150, 155)
+		search.Text = ""
+		search.ClearTextOnFocus = false
+		search.ZIndex = 51
+		search.Parent = win
+		Instance.new("UICorner", search).CornerRadius = UDim.new(0, 4)
+
+		local filterBtn = Instance.new("TextButton")
+		filterBtn.BackgroundColor3 = Color3.fromRGB(70, 74, 84)
+		filterBtn.BorderSizePixel = 0
+		filterBtn.Position = UDim2.new(0, 75, 0, 62)
+		filterBtn.Size = UDim2.new(0, 150, 0, 22)
+		filterBtn.Font = Enum.Font.GothamBold
+		filterBtn.TextSize = 12
+		filterBtn.TextColor3 = Color3.new(1, 1, 1)
+		filterBtn.ZIndex = 51
+		filterBtn.Parent = win
+		Instance.new("UICorner", filterBtn).CornerRadius = UDim.new(0, 4)
+
+		local scroll = Instance.new("ScrollingFrame")
+		scroll.BackgroundTransparency = 1
+		scroll.BorderSizePixel = 0
+		scroll.Position = UDim2.new(0, 6, 0, 92)
+		scroll.Size = UDim2.new(1, -12, 1, -92 - 38)
+		scroll.ScrollBarThickness = 5
+		scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+		scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		scroll.ZIndex = 51
+		scroll.Parent = win
+
+		local grid = Instance.new("UIGridLayout")
+		grid.CellSize = UDim2.new(0, 50, 0, 50)
+		grid.CellPadding = UDim2.new(0, 6, 0, 6)
+		grid.SortOrder = Enum.SortOrder.LayoutOrder
+		grid.Parent = scroll
+
+		local closeBtn = Instance.new("TextButton")
+		closeBtn.BackgroundColor3 = Color3.fromRGB(38, 62, 120)
+		closeBtn.BorderSizePixel = 0
+		closeBtn.Position = UDim2.new(0.5, -45, 1, -32)
+		closeBtn.Size = UDim2.new(0, 90, 0, 26)
+		closeBtn.Font = Enum.Font.GothamBold
+		closeBtn.TextSize = 13
+		closeBtn.TextColor3 = Color3.new(1, 1, 1)
+		closeBtn.Text = "Close"
+		closeBtn.ZIndex = 52
+		closeBtn.Parent = win
+		Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 4)
+		closeBtn.MouseButton1Click:Connect(function()
+			win:Destroy()
+		end)
+
+		local tip = Instance.new("TextLabel")
+		tip.BackgroundColor3 = Color3.new(0, 0, 0)
+		tip.BackgroundTransparency = 0.15
+		tip.BorderSizePixel = 0
+		tip.Font = Enum.Font.GothamBold
+		tip.TextSize = 13
+		tip.TextColor3 = Color3.new(1, 1, 1)
+		tip.TextWrapped = true
+		tip.Visible = false
+		tip.Size = UDim2.new(0, 180, 0, 20)
+		tip.ZIndex = 60
+		tip.Parent = win
+
+		local filterMode = 1
+		local filterNames = { "Filter: All", "Filter: Selected", "Filter: Not selected" }
+		local entries = {}
+
+		local function refresh()
+			filterBtn.Text = filterNames[filterMode]
+			local q = string.lower(search.Text)
+			for _, e in ipairs(entries) do
+				local on = selected[e.name] == true
+				e.check.Visible = on
+				e.stroke.Color = on and Color3.fromRGB(80, 220, 110) or Color3.fromRGB(60, 60, 64)
+				e.stroke.Thickness = on and 2 or 1
+				local show = (q == "" or string.find(string.lower(e.name), q, 1, true))
+				if filterMode == 2 and not on then
+					show = false
+				elseif filterMode == 3 and on then
+					show = false
+				end
+				e.btn.Visible = show and true or false
+			end
+		end
+
+		for i, name in ipairs(names) do
+			local def = types[name]
+			local icon = resolveStickerIcon(name, def)
+			local btn = Instance.new(icon and "ImageButton" or "TextButton")
+			btn.BackgroundColor3 = Color3.fromRGB(45, 47, 53)
+			btn.BorderSizePixel = 0
+			btn.LayoutOrder = i
+			btn.ZIndex = 52
+			if icon then
+				btn.Image = icon
+			else
+				btn.Text = name
+				btn.TextWrapped = true
+				btn.TextSize = 9
+				btn.Font = Enum.Font.Gotham
+				btn.TextColor3 = Color3.new(1, 1, 1)
+			end
+			btn.Parent = scroll
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+			local stroke = Instance.new("UIStroke")
+			stroke.Parent = btn
+
+			local check = Instance.new("TextLabel")
+			check.BackgroundColor3 = Color3.fromRGB(80, 220, 110)
+			check.BorderSizePixel = 0
+			check.Size = UDim2.new(0, 14, 0, 14)
+			check.Position = UDim2.new(1, -14, 0, 0)
+			check.Text = utf8.char(10003)
+			check.TextSize = 11
+			check.Font = Enum.Font.GothamBold
+			check.TextColor3 = Color3.new(0, 0, 0)
+			check.ZIndex = 53
+			check.Parent = btn
+
+			local text = name
+			local extra = resolveStickerTip(def)
+			if extra then
+				text = name .. "\n" .. extra
+			end
+			local function showTip()
+				tip.Text = text
+				tip.Size = UDim2.new(0, 200, 0, extra and 40 or 20)
+				local rel = btn.AbsolutePosition - win.AbsolutePosition
+				tip.Position = UDim2.new(0, math.clamp(rel.X - 60, 4, 96), 0, math.clamp(rel.Y + 52, 4, 536 - 90))
+				tip.Visible = true
+			end
+
+			btn.MouseEnter:Connect(showTip)
+			btn.MouseLeave:Connect(function()
+				tip.Visible = false
+			end)
+			btn.MouseButton1Click:Connect(function()
+				if selected[name] then
+					selected[name] = nil
+				else
+					selected[name] = true
+				end
+				saveConfig()
+				showTip()
+				refresh()
+			end)
+
+			table.insert(entries, { name = name, btn = btn, check = check, stroke = stroke })
+		end
+
+		filterBtn.MouseButton1Click:Connect(function()
+			filterMode = filterMode % 3 + 1
+			refresh()
+		end)
+		search:GetPropertyChangedSignal("Text"):Connect(refresh)
+		refresh()
+	end
+
+	-- Grid view for "BQs To Buy" / "BQs To Delete". Same config format as the list view.
+	local BQ_GRID = true -- false = old list view
+
+	ui.BQGrid = function(text, entryNames, conf)
+		local isDelete = text == "BQs To Delete"
+		local minLo = isDelete and 1 or 0
+		local minHi = 5
+		local minDefault = isDelete and 1 or 0
+		local old = ScreenGui:FindFirstChild("BQGrid")
+		if old then
+			old:Destroy()
+		end
+
+		local win = Instance.new("Frame")
+		win.Name = "BQGrid"
+		win.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
+		win.BorderSizePixel = 0
+		win.Position = UDim2.new(0.5, -150, 0.05, 0)
+		win.Size = UDim2.new(0, 300, 0.9, 0)
+		win.ZIndex = 50
+		win.Parent = ScreenGui
+		Instance.new("UICorner", win).CornerRadius = UDim.new(0, 4)
+
+		local function mk(class, props, parent)
+			local o = Instance.new(class)
+			for k, v in pairs(props) do
+				o[k] = v
+			end
+			o.Parent = parent
+			return o
+		end
+
+		mk("TextLabel", {
+			BackgroundTransparency = 1, Position = UDim2.new(0, 8, 0, 6), Size = UDim2.new(0, 130, 0, 24),
+			Font = Enum.Font.GothamBold, TextSize = 16, TextColor3 = Color3.new(1, 1, 1),
+			TextXAlignment = Enum.TextXAlignment.Left, Text = text, ZIndex = 51,
+		}, win)
+
+		local search = mk("TextBox", {
+			BackgroundColor3 = Color3.fromRGB(45, 47, 53), BorderSizePixel = 0, Position = UDim2.new(1, -138, 0, 8),
+			Size = UDim2.new(0, 130, 0, 22), Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1),
+			PlaceholderText = "Search", PlaceholderColor3 = Color3.fromRGB(150, 150, 155), Text = "", ClearTextOnFocus = false, ZIndex = 51,
+		}, win)
+		Instance.new("UICorner", search).CornerRadius = UDim.new(0, 4)
+
+		local scroll = mk("ScrollingFrame", {
+			BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.new(0, 6, 0, 38),
+			Size = UDim2.new(1, -12, 1, -38 - 112), ScrollBarThickness = 5, CanvasSize = UDim2.new(),
+			AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 51,
+		}, win)
+		mk("UIGridLayout", {
+			CellSize = UDim2.new(0, 84, 0, 78), CellPadding = UDim2.new(0, 6, 0, 6), SortOrder = Enum.SortOrder.LayoutOrder,
+		}, scroll)
+
+		-- bottom panel for the focused item
+		local panel = mk("Frame", {
+			BackgroundColor3 = Color3.fromRGB(38, 40, 46), BorderSizePixel = 0, Position = UDim2.new(0, 6, 1, -108),
+			Size = UDim2.new(1, -12, 0, 74), ZIndex = 51,
+		}, win)
+		Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 4)
+		local panelTitle = mk("TextLabel", {
+			BackgroundTransparency = 1, Position = UDim2.new(0, 8, 0, 4), Size = UDim2.new(1, -16, 0, 18),
+			Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = Color3.new(1, 1, 1),
+			TextXAlignment = Enum.TextXAlignment.Left, Text = "Tap an item", ZIndex = 52,
+		}, panel)
+		mk("TextLabel", {
+			BackgroundTransparency = 1, Position = UDim2.new(0, 8, 0, 26), Size = UDim2.new(0, 170, 0, 20),
+			Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.fromRGB(200, 200, 200),
+			TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 52,
+			Text = isDelete and "Minimum Potential To Keep" or "Minimum Potential To Buy",
+		}, panel)
+		local function stepBtn(label, x)
+			local b = mk("TextButton", {
+				BackgroundColor3 = Color3.fromRGB(70, 74, 84), BorderSizePixel = 0, Position = UDim2.new(1, x, 0, 26),
+				Size = UDim2.new(0, 24, 0, 20), Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.new(1, 1, 1),
+				Text = label, ZIndex = 52,
+			}, panel)
+			Instance.new("UICorner", b).CornerRadius = UDim.new(0, 4)
+			return b
+		end
+		local minus = stepBtn("-", -76)
+		local plus = stepBtn("+", -30)
+		local valueLabel = mk("TextLabel", {
+			BackgroundTransparency = 1, Position = UDim2.new(1, -52, 0, 26), Size = UDim2.new(0, 22, 0, 20),
+			Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = Color3.new(1, 1, 1), Text = "-", ZIndex = 52,
+		}, panel)
+		local alwaysBtn = nil
+		if isDelete then
+			alwaysBtn = mk("TextButton", {
+				BackgroundColor3 = Color3.fromRGB(70, 74, 84), BorderSizePixel = 0, Position = UDim2.new(0, 8, 0, 50),
+				Size = UDim2.new(0, 130, 0, 20), Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1),
+				Text = "Always Delete: -", ZIndex = 52,
+			}, panel)
+			Instance.new("UICorner", alwaysBtn).CornerRadius = UDim.new(0, 4)
+		end
+
+		local closeBtn = mk("TextButton", {
+			BackgroundColor3 = Color3.fromRGB(45, 47, 53), BorderSizePixel = 0, Position = UDim2.new(0.5, -45, 1, -28),
+			Size = UDim2.new(0, 90, 0, 22), Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = Color3.new(1, 1, 1),
+			Text = "Close", ZIndex = 52,
+		}, win)
+		Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 4)
+		closeBtn.MouseButton1Click:Connect(function()
+			win:Destroy()
+		end)
+
+		local tiles = {}
+		local focused = nil
+
+		local function entry(name)
+			return conf[name]
+		end
+
+		local function refresh()
+			for _, t in ipairs(tiles) do
+				local c = entry(t.name)
+				local on = c and c[1] == true
+				t.stroke.Color = on and Color3.fromRGB(80, 220, 110) or Color3.fromRGB(60, 60, 64)
+				t.stroke.Thickness = (focused == t.name) and 3 or (on and 2 or 1)
+				if focused == t.name and not on then
+					t.stroke.Color = Color3.fromRGB(120, 160, 255)
+				end
+				t.check.Visible = on and true or false
+				t.badge.Text = tostring(c and tonumber(c[2]) or minDefault)
+				t.badge.Visible = on and true or false
+			end
+			if focused then
+				local c = entry(focused)
+				panelTitle.Text = focused .. (c and c[1] and "  (on)" or "  (off)")
+				valueLabel.Text = tostring(c and tonumber(c[2]) or minDefault)
+				if alwaysBtn then
+					alwaysBtn.Text = "Always Delete: " .. ((c and c[3]) and "ON" or "OFF")
+				end
+			else
+				panelTitle.Text = "Tap an item"
+				valueLabel.Text = "-"
+			end
+			local q = string.lower(search.Text)
+			for _, t in ipairs(tiles) do
+				t.frame.Visible = q == "" or string.find(string.lower(t.name), q, 1, true) ~= nil
+			end
+		end
+
+		local function ensure(name)
+			if not conf[name] then
+				conf[name] = isDelete and { false, minDefault } or { false, minDefault }
+			end
+			return conf[name]
+		end
+
+		minus.MouseButton1Click:Connect(function()
+			if not focused then
+				return
+			end
+			local c = ensure(focused)
+			c[2] = math.clamp((tonumber(c[2]) or minDefault) - 1, minLo, minHi)
+			saveConfig()
+			refresh()
+		end)
+		plus.MouseButton1Click:Connect(function()
+			if not focused then
+				return
+			end
+			local c = ensure(focused)
+			c[2] = math.clamp((tonumber(c[2]) or minDefault) + 1, minLo, minHi)
+			saveConfig()
+			refresh()
+		end)
+		if alwaysBtn then
+			alwaysBtn.MouseButton1Click:Connect(function()
+				if not focused then
+					return
+				end
+				local c = ensure(focused)
+				c[3] = not c[3]
+				saveConfig()
+				refresh()
+			end)
+		end
+
+		for i, name in ipairs(entryNames) do
+			local frame = mk("TextButton", {
+				BackgroundColor3 = Color3.fromRGB(45, 47, 53), BorderSizePixel = 0, Text = "", AutoButtonColor = true,
+				LayoutOrder = i, ZIndex = 52,
+			}, scroll)
+			Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
+			local stroke = Instance.new("UIStroke")
+			stroke.Parent = frame
+
+			local iconImg = mk("ImageLabel", {
+				BackgroundTransparency = 1, Position = UDim2.new(0.5, -26, 0, 4), Size = UDim2.new(0, 52, 0, 52),
+				ScaleType = Enum.ScaleType.Fit, ZIndex = 53,
+			}, frame)
+			pcall(function()
+				local icons = ReplicatedStorage.Beequips.BeequipTypes:FindFirstChild("Icons")
+				local item = icons and icons:FindFirstChild(name)
+				if item then
+					iconImg.Image = item.Texture
+				end
+			end)
+
+			mk("TextLabel", {
+				BackgroundTransparency = 1, Position = UDim2.new(0, 2, 1, -20), Size = UDim2.new(1, -4, 0, 18),
+				Font = Enum.Font.GothamBold, TextSize = 9, TextColor3 = Color3.new(1, 1, 1), TextWrapped = true,
+				Text = name, ZIndex = 53,
+			}, frame)
+
+			local check = mk("TextLabel", {
+				BackgroundColor3 = Color3.fromRGB(80, 220, 110), BorderSizePixel = 0, Position = UDim2.new(1, -14, 0, 0),
+				Size = UDim2.new(0, 14, 0, 14), Text = utf8.char(10003), TextSize = 11, Font = Enum.Font.GothamBold,
+				TextColor3 = Color3.new(0, 0, 0), ZIndex = 54, Visible = false,
+			}, frame)
+			local badge = mk("TextLabel", {
+				BackgroundColor3 = Color3.fromRGB(38, 62, 120), BorderSizePixel = 0, Position = UDim2.new(0, 0, 0, 0),
+				Size = UDim2.new(0, 14, 0, 14), Text = "0", TextSize = 10, Font = Enum.Font.GothamBold,
+				TextColor3 = Color3.new(1, 1, 1), ZIndex = 54, Visible = false,
+			}, frame)
+
+			frame.MouseButton1Click:Connect(function()
+				focused = name
+				local c = ensure(name)
+				c[1] = not c[1]
+				saveConfig()
+				refresh()
+			end)
+
+			table.insert(tiles, { name = name, frame = frame, stroke = stroke, check = check, badge = badge })
+		end
+
+		search:GetPropertyChangedSignal("Text"):Connect(refresh)
+		refresh()
+	end
+
 	ui.Modal = function(text, entryNames, entryInfo)
 		local Modal = ScreenGui:FindFirstChild("Modal")
 
 		if Modal then
 			Modal:Destroy()
+		end
+
+		if BQ_GRID and (text == "BQs To Buy" or text == "BQs To Delete") then
+			if text == "BQs To Buy" then
+				if not cfg.misc.bqbuyconf then
+					cfg.misc.bqbuyconf = {}
+				end
+				return ui.BQGrid(text, entryNames, cfg.misc.bqbuyconf)
+			end
+			if not cfg.misc.bqdelconf then
+				cfg.misc.bqdelconf = {}
+			end
+			return ui.BQGrid(text, entryNames, cfg.misc.bqdelconf)
 		end
 
 		local clone = uiParts.modal:Clone()
@@ -66046,6 +66557,10 @@ which bees and get all 3 targets if
 					end
 				end, 165)
 
+				Stickers.AddButton("Select Donate Stickers (Grid)", function()
+					ui.StickerPicker("Stacker Stickers", "stackselect")
+				end, 200)
+
 				controls["Auto Delete Stickers"] = Stickers.AddSwitch("Auto Delete Stickers", nil, "toys", "discardstickers")
 				local discardDropdown = nil
 
@@ -66101,6 +66616,10 @@ which bees and get all 3 targets if
 					ui.Notify("Auto Delete Stickers", "Leaves added to list")
 				end, 140)
 
+				Stickers.AddButton("Select Delete Stickers (Grid)", function()
+					ui.StickerPicker("Delete Stickers", "discardselect")
+				end, 200)
+
 				controls["Discard Donated Stickers"] = Stickers.AddSwitch("Discard Donated Stickers", nil, "toys", "discarddonated")
 				local keepDropdown = nil
 
@@ -66129,6 +66648,10 @@ which bees and get all 3 targets if
 					keepDropdown.Add(keepName)
 					saveConfig()
 				end, nil, true, { Clear = true, Size = 200 })
+
+				Stickers.AddButton("Select Keep Stickers (Grid)", function()
+					ui.StickerPicker("Keep Stickers", "keepselect")
+				end, 200)
 
 				controls["Auto Sticker Printer"] = Stickers.AddSwitch("Auto Sticker Printer", nil, "toys", "stickerprinter")
 
