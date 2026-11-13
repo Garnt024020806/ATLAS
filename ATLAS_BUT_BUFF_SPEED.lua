@@ -3714,6 +3714,3215 @@ do
 		end)
 	end
 
+	-- Sticker info module (desc / buff / reward / methods / category per sticker)
+	ui.StickerData = (function()
+return {
+	stickerData = {
+		["Play Button"] = {
+			type = 'Sticker',
+			desc = [["For being a loyal viewer."]],
+			buff = '+10,000 Capacity',
+			reward = '10 Tickets',
+			methods = [[*Can be given out by certain video content creators]],
+			ids = 'type-Secret',
+		},
+		["Gamer Chat Icon"] = {
+			type = 'Sticker',
+			desc = [["For positively contributing to BSS discorse."]],
+			buff = '+10,000 Capacity',
+			reward = '10 Tickets',
+			methods = [[*Can be given out by official Bee Swarm Simulator Discord staff]],
+			ids = 'type-Secret',
+		},
+		["Flying Rad Bee"] = {
+			type = 'Sticker',
+			desc = [["The sun can't stop this bee from soaring."]],
+			buff = '+2% Red Pollen',
+			reward = '1 Red Extract',
+			methods = [[*Found by Rad Bee when gathering while very happy (Extremely Rare)
+*Sticker Printer (Silver Egg)
+*Sticker Planter (Extremely Rare)
+*Sticker Sprout (Unbelievably Rare)]],
+			eggs = {
+				['Silver'] = 'About 1 in 10',
+			},
+			ids = 'type-Bee',
+		},
+		["Flying Ninja Bee"] = {
+			type = 'Sticker',
+			desc = [["A rare sight. Ninja Bee sticks to the shadows."]],
+			buff = '+0.25% Bee Movespeed',
+			reward = '1 Blue Extract',
+			methods = [[*Found by Ninja Bee when gathering while very happy (Extremely Rare)
+*Sticker Printer (Diamond Egg)
+*Sticker Planter (Extremely Rare)
+*Sticker Sprout (Unbelievably Rare)]],
+			eggs = {
+				['Diamond'] = 'About 1 in 10',
+			},
+			ids = 'type-Bee',
+		},
+		["Flying Brave Bee"] = {
+			type = 'Sticker',
+			desc = [["What monsters see before they go away forever."]],
+			buff = '+2 Rare Bee Attack',
+			reward = '3 Stingers',
+			methods = [[*Found by Brave Bee when gathering while very happy (Extremely Rare)
+*Sticker Printer (Silver Egg)
+*Sticker Planter (Extremely Rare)
+*Sticker Sprout (Unbelievably Rare)]],
+			eggs = {
+				['Silver'] = 'About 1 in 10',
+			},
+			ids = 'type-Bee',
+		},
+		["Flying Photon Bee"] = {
+			type = 'Sticker',
+			desc = [["Doing what it does best." ]],
+			buff = '+5% Instant Event Bee Conversion',
+			reward = '1 Oil',
+			methods = [[*Found by Photon Bee when gathering while very happy (Extremely Rare)
+*Sticker Sprout (Unbelievably Rare)
+*Sticker Planter (Unbelievably Rare)]],
+			ids = 'type-Bee',
+		},
+		["Drooping Stubborn Bee"] = {
+			type = 'Sticker',
+			desc = [["It was forced to go where it didn't want to go."]],
+			buff = '+1% Ability Token Lifespan',
+			reward = '1 Oil',
+			methods = [[*Found by Stubborn Bee when gathering while upset (Extremely Rare)
+*Feeding a Neonberry to a Stubborn Bee (1 in 1,000 chance)
+*Sticker Planter (Extremely Rare)]],
+			ids = 'type-Bee',
+		},
+		["Wobbly Looker Bee"] = {
+			type = 'Sticker',
+			desc = [["It looked a little too closely."]],
+			buff = '+1% Critical Power',
+			reward = '3 Neonberry',
+			methods = [[*Found by Looker Bee when gathering while very happy (Extremely Rare)
+*Feeding a Neonberry to a Looker Bee (1 in 1,000 chance)]],
+			ids = 'type-Bee',
+		},
+		["Blob Bumble Bee"] = {
+			type = 'Sticker',
+			desc = [["This fellow is getting a little too mellow."]],
+			buff = '+5% Blue Bomb Pollen',
+			reward = '1 Blue Extract',
+			methods = [[*Found by Mutated Bumble Bees in the Sunflower Field (Very Rare)
+*Feeding a Neonberry to a Bumble Bee (1 in 1,000 chance)
+*Sticker Printer (Silver Egg, Gifted Silver Egg)
+*Sticker Planter (Unbelievably Rare)
+*Purchased in Bee Bear's Catalog for 2500 Snowflakes]],
+			eggs = {
+				['Gifted Silver'] = 'About 1 in 18',
+				['Silver'] = 'About 1 in 972',
+			},
+			ids = 'type-Bee',
+		},
+		["Round Rascal Bee"] = {
+			type = 'Sticker',
+			desc = [["Built for rolling in laughter."]],
+			buff = '+5% Red Bomb Pollen',
+			reward = '1 Red Extract',
+			methods = [[*Found by Mutated Rascal Bees in the Sunflower Field (Very Rare)
+*Feeding a Neonberry to a Rascal Bee (1 in 1,000 chance)
+*Sticker Printer (Silver Egg, Gifted Silver Egg)
+*Sticker Planter (Unbelievably Rare)]],
+			eggs = {
+				['Gifted Silver'] = 'About 1 in 18',
+				['Silver'] = 'About 1 in 972',
+			},
+			ids = 'type-Bee',
+		},
+		["Round Basic Bee"] = {
+			type = 'Sticker',
+			desc = [["An unnaturally rotund sight."]],
+			buff = 'x3 Common Bee Pollen',
+			reward = '1 Basic Egg',
+			methods = [[*Found by Mutated Basic Bee in the Pumpkin Patch (Nearly Impossible)
+*Feeding a Neonberry to a Basic Bee (Odds increase with level from 1 in 250,000 to 1 in 25,000)
+*Sticker Planter (Unfathomably Rare)
+*Sticker Printer (Basic Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 112,121',
+			},
+			ids = 'type-Bee',
+		},
+		["Diamond Diamond Bee"] = {
+			type = 'Sticker',
+			desc = [["It took its name too literally."]],
+			buff = '+5% Mutated Bee Convert Rate',
+			reward = '10 Tickets',
+			methods = [[*Found by Gifted Diamond Bee on the Mountain Top Field (Unbelievably Rare)
+*Feeding a Neonberry to a Diamond Bee (1 in 2,500 chance)
+*Sticker Planter (Unbelievably Rare)
+*Sticker Printer (Gifted Diamond Egg)]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 10',
+			},
+			ids = 'type-Bee',
+		},
+		["4-Pronged Vector Bee"] = {
+			type = 'Sticker',
+			desc = [["When the Mythic Egg gets the math wrong."]],
+			buff = '+1% Mark Ability Pollen',
+			reward = '10 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward (Extremely Rare)
+*Feeding a Neonberry to a Vector Bee (1 in 2,500 chance)
+*Sticker Printer (Mythic Egg, Gifted Mythic Egg)
+*(Not listed) Potential reward from the Mythic Gift Box]],
+			eggs = {
+				['Gifted Mythic'] = 'About 1 in 19',
+				['Mythic'] = 'About 1 in 28',
+			},
+			ids = 'type-Bee',
+		},
+		["Shocked Hive Slot"] = {
+			type = 'Sticker',
+			desc = [["It's totally real. The bee is lvl 1."]],
+			buff = '+1% White Pollen',
+			reward = '50 Pineapples',
+			methods = [[*Found by Shocked Bee in the Mushroom Field (Very Rare)
+*Feeding a Neonberry to a Shocked Bee (1 in 1,000 chance)
+*Sticker Planter (Extremely Rare)]],
+			eggs = {
+				['Gold'] = 'About 1 in 26',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Bear Bee Offer"] = {
+			type = 'Sticker',
+			desc = [["Only available for a limited time! (your lifespan)."]],
+			buff = '+2% Event Bee Pollen',
+			reward = '10 Tickets',
+			methods = [[*Found by Gifted Bear Bee in the Pineapple Patch (Extremely Rare)
+*Feeding a Star Treat to an already Gifted Bear Bee (1 in 3 chance)
+*Sticker Planter (Unbelievably Rare)
+*Sticker Sprout (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Tabby Scratch"] = {
+			type = 'Sticker',
+			desc = [["A demonstration of feline ferocity."]],
+			buff = '+10% Scratch Pollen',
+			reward = '10 Tickets',
+			methods = [[*Collecting Tabby Love after max stacks while a Stinger is active (Extremely Rare). The chance increases with Tabby Bee's level (From 1 in 10,000 to 1 in 100).]],
+			ids = 'type-Not_Categorized',
+		},
+		["Tabby From Behind"] = {
+			type = 'Sticker',
+			desc = [["The first thing you see when you wake up."]],
+			buff = '+1% Critical Power',
+			reward = '10 Tickets',
+			methods = [[*Feeding a Moon Charm to a Tabby Bee at max Tabby Love. Odds increase with Tabby Bee's level (from 1 in 100,000 to 1 in 10,000).
+*Sticker Printer (Gold Egg, Gifted Gold Egg)
+*Sticker Planter (Unbelievably Rare)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 72',
+				['Gold'] = 'About 1 in 1,318',
+			},
+			ids = 'type-Bee',
+		},
+		["Fuzz Bomb"] = {
+			type = 'Sticker',
+			desc = [["They look sharp and spikey, but it's just an illusion."]],
+			buff = '+5% Buzz Bomb Pollen',
+			reward = '1 Oil',
+			methods = [[*Found by Fuzzy Bee in the Bamboo Field (Extremely Rare)
+*Popping Fuzz Bombs on the Bamboo Field (1 in 10,000 chance)
+*Sticker Printer (Mythic Egg)]],
+			eggs = {
+				['Mythic'] = 'About 1 in 11',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Precise Eye"] = {
+			type = 'Sticker',
+			desc = [["An extremely judgemental glare."]],
+			buff = '+1% Super Crit Power',
+			reward = '1 Hard Wax',
+			methods = [[*Spawned after activating all 3 Target Practice targets on the Clover Field (1 in 3,333 chance)
+*Sticker Printer (Mythic Egg)
+*(Not listed) Potential reward from the Mythic Gift Box]],
+			eggs = {
+				['Mythic'] = 'About 1 in 6',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Chef Hat Polar Bear"] = {
+			type = 'Sticker',
+			desc = [["The hat, a Toque, dates back to the 16th century."]],
+			buff = '+5% Instant Colorless Bee Conversion',
+			reward = '10 Tickets',
+			methods = [[*Reward from Polar Bear Quests (1 in 100 chance)]],
+			ids = 'type-Bear',
+		},
+		["Honey Bee Bear"] = {
+			type = 'Sticker',
+			desc = [["Its looks are as large as its appetite."]],
+			buff = '+2% Honey From Tokens',
+			reward = '1 Enzymes',
+			methods = [[*Found by Honey Bee in the Mountain Top Field (Extremely Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Printer (Gold Egg, Gifted Gold Egg)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 7',
+				['Gold'] = 'About 1 in 132',
+			},
+			ids = 'type-Bear',
+		},
+		["Bomber Bee Bear"] = {
+			type = 'Sticker',
+			desc = [["The Hero Bakudan Kuma." ]],
+			buff = '+5% Buzz Bomb Pollen',
+			reward = '1 Loaded Dice',
+			methods = [[*Found by Bomber Bee in the Mountain Top Field (Extremely Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Printer (Silver Egg)]],
+			eggs = {
+				['Silver'] = 'About 1 in 10',
+			},
+			ids = 'type-Bear',
+		},
+		["Uplooking Bear"] = {
+			type = 'Sticker',
+			desc = [["Rolling its eyes? Or stuck in the clouds?"]],
+			buff = '+1% Critical Power',
+			reward = '5 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Very Rare)
+*Sticker Sprout (Very Rare)
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 13',
+			},
+			ids = 'type-Bear',
+		},
+		["Sitting Green Shirt Bear"] = {
+			type = 'Sticker',
+			desc = [["Nothing interesting about this bear, apart from its shirt."]],
+			buff = '+10,000 Capacity',
+			reward = '5 Tickets',
+			methods = [[*Found by Bubble Bee in the Clover Field (Uncommon)
+*Tacky Planter in the Clover Field (Very Rare)
+*Sticker Printer (Gold Egg)
+*Sticker Sprout (Extremely Rare)]],
+			eggs = {
+				['Gold'] = 'About 1 in 13',
+			},
+			ids = 'type-Bear',
+		},
+		["Shy Brown Bear"] = {
+			type = 'Sticker',
+			desc = [["He doesn't do well in crowds."]],
+			buff = '+0.25% Bee Ability Pollen',
+			reward = '5 Royal Jellies',
+			methods = [[*Completing 123 Brown Bear Quests
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 132',
+			},
+			ids = 'type-Bear',
+		},
+		["Sitting Mother Bear"] = {
+			type = 'Sticker',
+			desc = [["She needs a rest from all that parenting."]],
+			buff = '+0.5% Gifted Bee Pollen',
+			reward = '10 Tickets',
+			methods = [[*Using the Sticker-Seeker in the Sunflower Field (Extremely Rare)
+*Hydroponic Planter in the Sunflower Field (Extremely Rare)
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 132',
+			},
+			ids = 'type-Bear',
+		},
+		["Squashed Head Bear"] = {
+			type = 'Sticker',
+			desc = [["It got hit by a Mythic Meteor. It'll never be the same."]],
+			buff = '+1% Super Critical Power',
+			reward = '25 Bitterberries',
+			methods = [[*Mythic Meteors (Extremely Rare)
+*Sticker-Seeker Quest Reward (Extremely Rare)
+*Sticker Planter (Extremely Rare)
+*Using the Sticker-Seeker in any field (Nearly Impossible)]],
+			ids = 'type-Bear',
+		},
+		["Stretched Head Bear"] = {
+			type = 'Sticker',
+			desc = [["Its head was nearly blown off by a Windy Bee. It'll never be the same." ]],
+			buff = '+1% Super Crit Power',
+			reward = '25 Bitterberries',
+			methods = [[*Dropped by Wild Windy Bee (Extremely Rare)
+*Sticker-Seeker Quest Reward (Extremely rare)
+*Sticker Planter (Extremely Rare)
+*Using the Sticker-Seeker in any field (Nearly Impossible)]],
+			ids = 'type-Bear',
+		},
+		["Panicked Science Bear"] = {
+			type = 'Sticker',
+			desc = [["There was a miscalculation."]],
+			buff = '+5% Mutated Bee Convert Rate',
+			reward = '1 Enzymes',
+			methods = [[*Found by Radioactive Bees in the Pineapple Patch
+*Using a Micro-Converter in the Hive Hub (1 in 500 chance)
+*Sticker Sprout (Extremely Rare)]],
+			ids = 'type-Bear',
+		},
+		["Dapper From Above"] = {
+			type = 'Sticker',
+			desc = [["What most others see when talking to him."]],
+			buff = '+0.5% Pollen',
+			reward = '1 Ticket Planter',
+			methods = [[*Achievement: Tacky Planter chain involving 5 different fields... (Clover → Coconut → Stump → Pepper → Mountain Top, in that order, must be at 100% harvest)
+*Awarded to the daily top 5 Nectar Collectors
+*Sticker-Seeker Quest Reward (Unbelievably Rare)]],
+			ids = 'type-Bear',
+		},
+		["Sideways Spirit Bear"] = {
+			type = 'Sticker',
+			desc = [["She's just sleeping, I promise."]],
+			buff = '+10% Instant Tool Conversion',
+			reward = '1 Glitter',
+			methods = [[*Extreme Memory Match (Extremely Rare)
+*Using the Petal Wand in the Hub Field (Unbelievably Rare)
+*Using a Glitter on the Hub Field (1 in 500 chance)]],
+			ids = 'type-Bear',
+		},
+		["Glowering Gummy Bear"] = {
+			type = 'Sticker',
+			desc = [["He oozes an aura of pure determination for conquest."]],
+			buff = '+1% Honey Per Goo',
+			reward = '1 Glue',
+			methods = [[*Awarded to the #1 Daily Top Gummy Soldier
+*Was rewarded for completing Gummy Bear's Beesmas Quest of Summer 2024 (Not rewarded during Beesmas Winter 2024)]],
+			ids = 'type-Bear',
+		},
+		["Stranded Sun Bear"] = {
+			type = 'Sticker',
+			desc = [["No gas, signal, or search party..."]],
+			buff = '+10,000 Capacity',
+			reward = '10 Jelly Beans',
+			methods = [[*Reward for completing all 6 "Waiting With Sun Bear" quests of Fall 2024]],
+			ids = 'type-Bear event-Limited',
+		},
+		["Menacing Mantis"] = {
+			type = 'Sticker',
+			desc = [["It's praying for your doom."]],
+			buff = '+5% Pineapple Patch Pollen',
+			reward = '1 Blue Extract',
+			methods = [[*Dropped by Mantis (Extremely Rare)
+*Found by Rage Bee in the Pine Tree Forest (Very Rare)]],
+			ids = 'type-Mob',
+		},
+		["Little Scorpion"] = {
+			type = 'Sticker',
+			desc = [["Sort of looks like a lobster."]],
+			buff = '+5% Rose Field Pollen',
+			reward = '1 Red Extract',
+			methods = [[*Dropped by Scorpion (Extremely Rare)
+*Found by Basic Bee in the Rose Field (Very Rare)]],
+			ids = 'type-Mob',
+		},
+		["Left Facing Ant"] = {
+			type = 'Sticker',
+			desc = [["The bain[sic] of picnics."]],
+			buff = '+1 Legendary Bee Attack',
+			reward = '1 Ant Pass',
+			methods = [[*Rewarded from Ant Challenge (Very Rare)
+*Found by Lion Bee in the Ant Field]],
+			ids = 'type-Mob',
+		},
+		["Walking Stick Nymph"] = {
+			type = 'Sticker',
+			desc = [["It was just born and it's coming for you."]],
+			buff = '+1% Bee Attack',
+			reward = '3 Stingers',
+			methods = [[*Dropped by Stick Nymphs (Extremely Rare)]],
+			ids = 'type-Mob',
+		},
+		["Forward Facing Spider"] = {
+			type = 'Sticker',
+			desc = [["Not enough legs to technically be a spider."]],
+			buff = '+10% Spider Field Capacity',
+			reward = '1 Enzymes',
+			methods = [[*Dropped from Spider (Extremely Rare)
+*Using the Sticker-Seeker in the Spider Field (Extremely Rare)
+*Found by Demon Bee when gathering in the Spider Field (Very Rare)]],
+			ids = 'type-Mob',
+		},
+		["Forward Facing Aphid"] = {
+			type = 'Sticker',
+			desc = [["A tiny sapelievipping bug staring you down."]],
+			buff = '+1% Bee Attack',
+			reward = '1 Magic Bean',
+			methods = [[*Dropped by Aphids (Rare)]],
+			ids = 'type-Mob',
+		},
+		["Right Facing Stump Snail"] = {
+			type = 'Sticker',
+			desc = [["It scoots clockwise forever."]],
+			buff = '+5% Stump Field Pollen',
+			reward = '1 Glue',
+			methods = [[*Dropped by Stump Snail (Rare)]],
+			ids = 'type-Mob',
+		},
+		["Standing Bean Bug"] = {
+			type = 'Sticker',
+			desc = [["It's done with jumping."]],
+			buff = '+2% Pollen From Tools',
+			reward = '5 Jelly Beans',
+			methods = [[*Bean Bugs (Very Rare)
+*Sticker-Seeker Quest Reward (Extremely Rare)]],
+			ids = 'type-Mob',
+		},
+		["Small Blue Chick"] = {
+			type = 'Sticker',
+			desc = [["It hatched, yet it's still an egg."]],
+			buff = '+2% Blue Pollen',
+			reward = '1 Blue Extract',
+			methods = [[*Dropped from Mondo Chick (Very Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 13',
+			},
+			ids = 'type-Mob',
+		},
+		["Tadpole"] = {
+			type = 'Sticker',
+			desc = [["A strange Tadpole Bee without wings."]],
+			buff = '+3% Bubble Pollen',
+			reward = '1 Blue Extract',
+			methods = [[*1 in a million chance to spawn when a bubble is popped
+*Found by Tadpole Bee in the Mushroom Field (Very Rare)]],
+			ids = 'type-Animal',
+		},
+		["Happy Fish"] = {
+			type = 'Sticker',
+			desc = [["When you smile at it, it smiles at you."]],
+			buff = '+3% Bubble Pollen',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Very Rare)
+*Sticker Planter (Very Rare)
+*Sticker Sprout
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 26',
+			},
+			ids = 'type-Animal',
+		},
+		["Coiled Snake"] = {
+			type = 'Sticker',
+			desc = [["Don't tread on this." ]],
+			buff = '+1 Epic Bee Attack',
+			reward = '3 Stingers',
+			methods = [[*Sticker-Seeker Quest Reward (Rare)
+*Sticker Planter (Very Rare)
+*Sticker Sprout (Uncommon)
+*(Not listed) Potential reward from the Sweet-n-Sour Gift Box]],
+			ids = 'type-Animal',
+		},
+		["Standing Caterpillar"] = {
+			type = 'Sticker',
+			desc = [["Wiggling it's way up in life." ]],
+			buff = '+10% Rare Bee Pollen',
+			reward = '1 Enzymes',
+			methods = [[*Using Super-Scooper in the Pineapple Patch (Uncommon)
+*Sticker Planter on the Pineapple Patch
+*Hidden Sticker
+*(Not listed) Potential reward from the Sweet-n-Sour Gift Box]],
+			ids = 'type-Animal',
+		},
+		["Round Green Critter"] = {
+			type = 'Sticker',
+			desc = [["A little creature that lives on Sprouts."]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '1 Magic Bean',
+			methods = [[*Sprouts in the Clover Field (Very Rare)
+*Using the Sticker-Seeker in the Clover Field (Very Rare)
+*(Not listed) Potential reward from the Woodland Gift Box]],
+			ids = 'type-Animal',
+		},
+		["Flying Magenta Critter"] = {
+			type = 'Sticker',
+			desc = [["A little creature that lives on Sprouts."]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '1 Magic Bean',
+			methods = [[*Sprouts in the Dandelion Field (Very Rare)
+*Using the Sticker-Seeker in the Dandelion Field (Very Rare)
+*(Not listed) Potential reward from the Woodland Gift Box]],
+			ids = 'type-Animal',
+		},
+		["Blue Triangle Critter"] = {
+			type = 'Sticker',
+			desc = [["A little creature that lives on Sprouts."]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '1 Magic Bean',
+			methods = [[*Sprouts in the Blue Flower Field (Very Rare)
+*Using the Sticker-Seeker in the Blue Flower Field (Very Rare)
+*(Not listed) Potential reward from the Woodland Gift Box]],
+			ids = 'type-Animal',
+		},
+		["Purple Pointed Critter"] = {
+			type = 'Sticker',
+			desc = [["A little creature that lives on Sprouts."]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '1 Magic Bean',
+			methods = [[*Sprouts in the Cactus Field (Very Rare)
+*Using the Sticker-Seeker in the Cactus Field (Very Rare)
+*(Not listed) Potential reward from the Woodland Gift Box]],
+			ids = 'type-Animal',
+		},
+		["Orange Leg Critter"] = {
+			type = 'Sticker',
+			desc = [["A little creature that lives on Sprouts."]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '1 Magic Bean',
+			methods = [[*Sprouts in the Pumpkin Patch (Very Rare)
+*Using the Sticker-Seeker in the Pumpkin Patch (Very Rare)
+*(Not listed) Potential reward from the Woodland Gift Box]],
+			ids = 'type-Animal',
+		},
+		["Green Plus Sign"] = {
+			type = 'Sticker',
+			desc = [["May indicate addition or a pharmacy."]],
+			buff = '+10,000 Capacity',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field
+*Sticker-Seeker Quest Reward
+*Sticker Planter
+*Hidden Sticker
+*Sticker Sprout
+*Sticker Printer (Basic Egg)
+*(Not listed) Potential reward from the Chartreuse Gift Box]],
+			eggs = {
+				['Basic'] = 'About 1 in 10',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Green Check Mark"] = {
+			type = 'Sticker',
+			desc = [["A standard seal of approval."]],
+			buff = '+10,000 Capacity',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field
+*Sticker-Seeker Quest Reward
+*Sticker Planter
+*Hidden Sticker
+*Sticker Sprout
+*Sticker Printer (Basic Egg)
+*(Not listed) Potential reward from the Chartreuse Gift Box]],
+			eggs = {
+				['Basic'] = 'About 1 in 10',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Red X"] = {
+			type = 'Sticker',
+			desc = [["Demonstrates disdain or a desire for removal."]],
+			buff = '+10% Convert Rate',
+			reward = '1 Red Extract',
+			methods = [[*Using the Sticker-Seeker on any field (Uncommon)
+*Sticker Planter (Rare)
+*Hidden Sticker (Uncommon)
+*Sticker Printer (Basic Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 15',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Alert Icon"] = {
+			type = 'Sticker',
+			desc = [["Let's[sic] you know something's up."]],
+			buff = '+5% Red Bomb Pollen',
+			reward = '3 Micro-Converters',
+			methods = [[*Using the Sticker-Seeker in any field (Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Sprout (Very Rare)
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 26',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Yellow Right Arrow"] = {
+			type = 'Sticker',
+			desc = [["A directional indicator."]],
+			buff = '+5% Instant Bee Gather Conversion',
+			reward = '3 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward
+*Using the Sticker-Seeker in any field
+*(Not listed) Potential reward from the Marigold Gift Box]],
+			ids = 'type-Not_Categorized',
+		},
+		["Yellow Left Arrow"] = {
+			type = 'Sticker',
+			desc = [["A directional indicator."]],
+			buff = '+5% Instant Bee Gather Conversion',
+			reward = '3 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward
+*Using the Sticker-Seeker in any field
+*(Not listed) Potential reward from the Marigold Gift Box]],
+			ids = 'type-Not_Categorized',
+		},
+		["Simple Sun"] = {
+			type = 'Sticker',
+			desc = [["It sustains almost all life on Earth."]],
+			buff = '+10% Convert Rate',
+			reward = '5 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field
+*Hidden Sticker
+*Sticker Planter
+*Sticker Printer (Basic Egg, Gold Egg)
+*Purchased in Bee Bear's Catalog for 100 Snowflakes
+*(Not listed) Potential reward from the Marigold Gift Box]],
+			eggs = {
+				['Basic'] = 'About 1 in 10',
+				['Gold'] = 'About 1 in 13',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Pink Cupcake"] = {
+			type = 'Sticker',
+			desc = [["There's strawberry jam inside."]],
+			buff = '+0.5% Honey Per Goo',
+			reward = ' 50 Strawberries',
+			methods = [[*Found by Gifted Stubborn Bee in the Strawberry Field (Rare)
+*Using the Sticker-Seeker in the Strawberry Field (Extremely Rare)
+*Candy Planter in the Strawberry Field (Extremely Rare)
+*Sticker Printer (Gold Egg)
+*Purchases in Bee Bear's Catalog for 600 Snowflakes
+*(Not listed) Potential reward from the Sweet-n-Sour Gift Box]],
+			eggs = {
+				['Gold'] = 'About 1 in 26',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Rubber Duck"] = {
+			type = 'Sticker',
+			desc = [["Squeeks(sic) instead of quacks."]],
+			buff = '+10% Rare Bee Pollen',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field
+*Hidden Sticker
+*Sticker Planter
+*Sticker Printer (Basic Egg)
+*Purchased in Bee Bear's Catalog for 30 Snowflakes
+*(Not listed) Potential reward from the Marigold Gift Box]],
+			eggs = {
+				['Basic'] = 'About 1 in 10',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Baseball Swing"] = {
+			type = 'Sticker',
+			desc = [["Hit it out of the park."]],
+			buff = '+2% Pollen From Tools',
+			reward = '5 Jelly Beans',
+			methods = [[*Using the Sticker-Seeker on fields in the starter zone (Uncommon)
+*Sticker Planter
+*Sticker Sprout (Uncommon)
+*Sticker Printer (Basic Egg)
+*(Not listed) Potential reward from the Marigold Gift Box]],
+			eggs = {
+				['Basic'] = 'About 1 in 15',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Yellow Coffee Mug"] = { -- you are here
+			type = 'Sticker',
+			desc = [["The best part of waking up."]],
+			buff = '+10% Convert Rate',
+			reward = '1 Oil',
+			methods = [[*Using the Sticker-Seeker in any field
+*Hidden Sticker
+*Sticker Planter
+*Sticker Printer (Basic Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 9',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Launching Rocket"] = {
+			type = 'Sticker',
+			desc = [["The sky is not the limit."]],
+			buff = '+15,000 Capacity',
+			reward = '10 Whirligigs',
+			methods = [[*Found by Gummy Bee in the Clover Field
+*Sticker Planter
+*Hidden Sticker (Uncommon)
+*Sticker Sprout (Uncommon)
+*Sticker Printer (Basic Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 32',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Thumbs Up Hand"] = {
+			type = 'Sticker',
+			desc = [["Good job!"]],
+			buff = '+10,000 Capacity',
+			reward = '5 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward
+*Found by Gifted Cool Bee in the Stump Field (Rare)
+*Sticker Sprout (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Peace Sign Hand"] = {
+			type = 'Sticker',
+			desc = [["Could also mean Victory."]],
+			buff = '+10% Convert Rate',
+			reward = '5 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward
+*Found by Gifted Cool Bee in the Pepper Patch (Rare)
+*Sticker Sprout (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Traffic Light"] = {
+			type = 'Sticker',
+			desc = [["It's sending mixed messages."]],
+			buff = '+10,000 Capacity',
+			reward = '3 Neonberries',
+			methods = [[*Found by Shocked Bee while gathering when very happy
+*Sticker Sprout (Uncommon)
+*Purchased in Bee Bear's Catalog for 300 Snowflakes]],
+			ids = 'type-Not_Categorized',
+		},
+		["Window"] = {
+			type = 'Sticker',
+			desc = [["Turn your hive into a home." ]],
+			buff = '+1% Honey At Hive',
+			reward = '3 Soft Waxes',
+			methods = [[*Sticker Planter (Uncommon)
+*Sticker Printer (Basic Egg, Gold Egg)
+*Sticker Sprout (Rare)]],
+			eggs = {
+				['Basic'] = 'About 1 in 225',
+				['Gold'] = 'About 1 in 13',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Simple Skyscraper"] = {
+			type = 'Sticker',
+			desc = [["High density living."]],
+			buff = '+1% Honey At Hive',
+			reward = '3 Micro-Converters',
+			methods = [[*Using the Sticker-Seeker on the Mountain Top Field (Rare)
+*Sticker Planter (Uncommon)
+*Sticker Printer (Basic Egg)
+*Sticker Sprout (Rare)]],
+			eggs = {
+				['Basic'] = 'About 1 in 225',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Simple Mountain"] = {
+			type = 'Sticker',
+			desc = [["It simply dominates the landscape."]],
+			buff = '+19% Mountain Top Field Capacity (Listed as 10% in-game)',
+			reward = '10 Whirligigs',
+			methods = [[*Found by Basic Bee in the Mountain Top Field (Rare)
+*Puffshrooms on the Mountain Top Field (Rare)
+*Sticker Planter on the Mountain Top Field (Rare)
+*Using the Sticker-Seeker on the Mountain Top Field (Rare)
+*Purchased in Bee Bear's Catalog for 250 Snowflakes]],
+			ids = 'type-Not_Categorized',
+		},
+		["Pale Heart"] = {
+			type = 'Sticker',
+			desc = [["A subtle hint of love." ]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '50 Strawberries',
+			methods = [[*Found by Gifted Baby Bee when gathering while very happy (Very Rare)
+*Found by Puppy Bee when gathering while very happy (Uncommon)
+*Petal Planter in the Strawberry Field (Very Rare)
+*Purchased in Bee Bear's Catalog for 300 Snowflakes]],
+			ids = 'type-Not_Categorized'
+		},
+		["Colorful Buttons"] = {
+			type = 'Sticker',
+			desc = [["Resembles a famous gamepad layout."]],
+			buff = '+10% Convert Rate',
+			reward = '5 Jelly Beans',
+			methods = [[*Sticker Planter
+*Tacky Planter (Rare)
+*Hidden Sticker (Uncommon)
+*Sticker Printer (Basic Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 32',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Giraffe"] = {
+			type = 'Sticker',
+			desc = [["It's neck is long so that it can see over horses standing in front of it."]],
+			buff = '+10% Convert Rate',
+			reward = '5 Tickets',
+			methods = [[*Using the Sticker-Seeker in the 15 Bee Zone
+*Hidden Sticker (Uncommon)
+*Sticker Planter (Uncommon)
+*Sticker Printer (Basic Egg, Gold Egg)
+*Sticker Sprout]],
+			eggs = {
+				['Basic'] = 'About 1 in 32',
+				['Gold'] = 'About 1 in 13',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Silly Tongue"] = {
+			type = 'Sticker',
+			desc = [["An irreverent gesture."]],
+			buff = '+2% Honey From Tokens',
+			reward = '25 Gumdrops',
+			methods = [[*Found by Rascal Bee in the Pineapple Patch (Uncommon)
+*Candy Planter in the Pineapple Patch (Very Rare)
+*(Not listed) Potential reward from the Sweet-n-Sour Gift Box]],
+			ids = 'type-Not_Categorized',
+		},
+		["White Flag"] = {
+			type = 'Sticker',
+			desc = [["Let the world know you've given up."]],
+			buff = '+2% White Pollen',
+			reward = '1 Oil',
+			methods = [[*Using the Rake in the Spider Field (Rare)
+*Sticker Planter on the Spider Field (Rare)
+*Hidden Sticker]],
+			ids = 'type-Not_Categorized'
+		},
+		["Pyramid"] = {
+			type = 'Sticker',
+			desc = [["This tomb withstands the test of time." ]],
+			buff = '+19% Cactus Field Capacity (Listed at 10% in-game)',
+			reward = '5 Tickets',
+			methods = [[*Found by Lion Bee in the Cactus Field (Rare)
+*Hidden Sticker (Very Rare)
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 13',
+			},
+			ids = 'type-Not_Categorized'
+		},
+		["Tiny House"] = {
+			type = 'Sticker',
+			desc = [["Demands a minimalist lifestyle."]],
+			buff = '+10% Convert Rate At Hive',
+			reward = '50 Sunflower Seeds',
+			methods = [[*Using the Sticker-Seeker in the starter zone
+*Sticker Sprout]],
+			ids = 'type-Not_Categorized',
+		},
+		["TNT"] = {
+			type = 'Sticker',
+			desc = [["Trinitrotoluene."]],
+			buff = '+2% Bomb Pollen',
+			reward = '3 Soft Waxes',
+			methods = [[*Found by Demo Bee when gathering while very happy (Uncommon)
+*Using any Cannon (1 in 25,000 chance)]],
+			ids = 'method-Special-Specific'
+		},
+		["Wishbone"] = {
+			type = 'Sticker',
+			desc = [["Snap it for a 50% chance at good luck." ]],
+			buff = '+1% Critical Power',
+			reward = '5 Field Dice',
+			methods = [[*Using the Scythe in the Cactus Field (Very Rare)
+*Hidden Sticker (Uncommon)
+*Sticker Planter (Uncommon)
+*Sticker Printer (Basic Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 32',
+			},
+			ids = 'method-Sticker_Printer-Basic',
+		},
+		["Yellow Umbrella"] = {
+			type = 'Sticker',
+			desc = [["Make your own sun on a rainy day."]],
+			buff = '+10% Instant Rare Bee Conversion',
+			reward = '1 Cloud Vial',
+			methods = [[*Sticker-Seeker Quest Reward
+*Sticker Sprout
+*Sticker Planter]],
+			ids = 'method-Sticker_Planter-Common',
+		},
+		["Red Palm Hand"] = {
+			type = 'Sticker',
+			desc = [["This means it's time to stop." ]],
+			buff = '+2% Red Field Capacity',
+			reward = '1 Hard Wax',
+			methods = [[*Found by Rage Bee on the Stump Field (Uncommon)
+*Using the Sticker-Seeker in any field (Extremely Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Printer (Basic Egg, Gifted Gold Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 972',
+				['Gifted Gold'] = 'About 1 in 7',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Yellow Sticky Hand"] = {
+			type = 'Sticker',
+			desc = [["Lets you grab things from afar maybe a couple times."]],
+			buff = '+0.5 Honey Per Goo',
+			reward = ' 1 Glue',
+			methods = [[*Found by Gummy Bee in the Sunflower Field (Very Rare)
+*Using Glue in the Hive Hub (1 in 100 chance)
+*Sticker Sprout (Extremely Rare)
+*Using the Sticker-Seeker in any field (Unbelievably Rare)
+*Sticker Printer (Basic Egg, Gold Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 897',
+				['Gold'] = 'About 1 in 132',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Yellow Walking Wiggly Person"] = {
+			type = 'Sticker',
+			desc = [["It struts around without a care in the world."]],
+			buff = '+5% Movement Collection Pollen',
+			reward = '25 Gumdrops',
+			methods = [[*Achievement: Walk on a specific flower in the Starter Zone (except the Mushroom Field), 5 Bee Zone, or 10 Bee Zone with the Basic Boots (different flower for each player)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Green SELL"] = {
+			type = 'Sticker',
+			desc = [["Perfect for setting up your own sticker shop." ]],
+			buff = '+10% Convert Rate At Hive',
+			reward = '5 Tickets',
+			methods = [[*Using the Sticker-Seeker in the starter zone or Hub Field (Rare)
+*Sticker Planter (Very Rare)
+*Sticker Printer (Basic Egg)
+*(Not listed) Potential reward from the Chartreuse Gift Box]],
+			eggs = {
+				['Basic'] = 'About 1 in 32',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Yellow Hi"] = {
+			type = 'Sticker',
+			desc = [["English greeting."]],
+			buff = '+10% Convert Rate',
+			reward = '1 Enzymes',
+			methods = [[*Using the Sticker-Seeker on any field (Uncommon)
+*Hidden Sticker (Rare)
+*Sticker Planter (Rare)
+*Sticker Printer (Basic Egg)
+*(Not listed) Reward for completing Bubble Bee Man's Beesmas 2024 quest]],
+			eggs = {
+				['Basic'] = 'About 1 in 15',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["AFK"] = {
+			type = 'Sticker',
+			desc = [["Away From Keyboard."]],
+			buff = '+10% Convert Rate At Hive',
+			reward = '1 Red Extract',
+			methods = [[*Awarded after every 24 hours spent in the Hive Hub
+*Sticker Sprout (Extremely Rare)
+*Sticker Planter (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Auryn"] = {
+			type = 'Sticker',
+			desc = [["A weary and neverending cycle, automated."]],
+			buff = '+3% Capacity',
+			reward = '1 Swirled Wax',
+			methods = [[*Achievement: Remain in game for 7 days straight (15 minute grace period between sessions)
+*Sticker-Seeker Quest Reward (Unbelievably Rare)
+*Sticker Planter (Unfathomably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Pink Chair"] = {
+			type = 'Sticker',
+			desc = [["Vibrant and functional."]],
+			buff = '+0.25% Bee Ability Pollen',
+			reward = '10 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Found by Shy Bee when gathering while very happy (Extremely Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Printer (Basic Egg, Silver Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 13,177',
+				['Star'] = 'About 1 in 6',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Doodle S"] = {
+			type = 'Sticker',
+			desc = [["A really neat geometric shape that only cool people can draw." ]],
+			buff = '+10,000 Capacity',
+			reward = '5 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward (Uncommon)
+*Using the Sticker-Seeker on the Spider Field (Rare)
+*Hidden Sticker (Uncommon)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Triple Exclamation"] = {
+			type = 'Sticker',
+			desc = [["When one just doesn't get the point across."]],
+			buff = '+1% Critical Power',
+			reward = '1 Loaded Dice',
+			methods = [[*Rolling the same field 3 times in a row with Field Dice
+*Sticker Planter (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Eighth Note"] = {
+			type = 'Sticker',
+			desc = [["Also known as a quaver."]],
+			buff = '+1% Critical Power',
+			reward = '5 Tickets',
+			methods = [[*Found by Music Bee when gathering while very happy (Very Rare)
+*Sticker Printer (Basic Egg)
+*Sticker Planter (Unbelievably Rare)]],
+			eggs = {
+				['Basic'] = 'About 1 in 225',
+			},
+			ids = 'type-Not_Categorized'
+		},
+		["Eviction"] = {
+			type = 'Sticker',
+			desc = [["Given to bees when their time is up."]],
+			buff = '+20,000 Capacity',
+			reward = '1 Hard Wax',
+			methods = [[*Discarding a Sticker (1 in 5,000 Chance)
+*Discarding a Beequip (1 in 2,500 Chance)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Fork And Knife"] = {
+			type = 'Sticker',
+			desc = [["The dynamic duo of dining."]],
+			buff = '+2% White Field Capacity',
+			reward = '500 Treats',
+			methods = [[*Rewarded from Polar Bear Quests (1 in 500 Chance)
+*Sticker Printer (Silver Egg)]],
+			eggs = {
+				['Silver'] = 'About 1 in 10',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Shining Halo"] = {
+			type = 'Sticker',
+			desc = [["Bestowed upon the divine."]],
+			buff = '+0.5% Pollen',
+			reward = '1 Glitter',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Sprout (Extremely Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Rhubarb"] = {
+			type = 'Sticker',
+			desc = [["Good for pies and cobblers."]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '50 Pineapples',
+			methods = [[*Using the Petal Wand in Pineapple Patch (Rare)
+*Gathering Leaves in the Pineapple Patch (Extremely Rare)
+*Sticker Printer (Basic Egg, Gold Egg)
+*(Not listed) Potential reward from the Sweet-n-Sour Gift Box]],
+			eggs = {
+				['Basic'] = 'About 1 in 897',
+				['Gold'] = 'About 1 in 26',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Sprout"] = {
+			type = 'Sticker',
+			desc = [["Not all sprouts are magical giants."]],
+			buff = '+1% Capacity',
+			reward = '1 Magic Bean',
+			methods = [[*Sprout (Very Rare)
+*(Not listed) Potential reward from the Chartreuse Gift Box]],
+			ids = 'type-Not_Categorized',
+		},
+		["Palm Tree"] = {
+			type = 'Sticker',
+			desc = [["The fronds can weight ''[sic]'' over 100 pounds."]],
+			buff = '+19% Coconut Field Capacity (listed as 10% in-game)',
+			reward = '10 Coconuts',
+			methods = [[*Using the Sticker-Seeker in the Coconut Field (Very Rare)
+*Planters in the Coconut Field (Very Rare)
+*Included in the Tropical Bundle in Bee Bear's Catalog]],
+			ids = 'type-Not_Categorized',
+		},
+		["Jack-O-Lantern"] = {
+			type = 'Sticker',
+			desc = [["A pumpkin carved for a rarely mentioned Honeyday."]],
+			buff = '+19% Pumpkin Patch Capacity (listed as 10% in-game)',
+			reward = '3 Soft Waxes',
+			methods = [[*Found by Rascal Bee in the Pumpkin Patch (Extremely Rare)
+*Using the Sticker-Seeker in the Pumpkin Patch (Very Rare)
+*Heat-Treated Planter in the Pumpkin Patch (Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Lightning"] = {
+			type = 'Sticker',
+			desc = [["A bolt from the heavens."]],
+			buff = '+1% Tool Swing Speed',
+			reward = '3 Micro-Converters',
+			methods = [[*Sticker-Seeker Quest Reward
+*Using the Spark Staff in any field (Rare)
+*Sticker Planter (Very Rare)]],
+			ids = 'type-Not_Categorized'
+		},
+		["Simple Cloud"] = {
+			type = 'Sticker',
+			desc = [["Doing its best to lower the UV Index."]],
+			buff = '+1% White Pollen',
+			reward = '1 Cloud Vial',
+			methods = [[*Sticker-Seeker Quest Reward
+*Dropped by Wild Windy Bee
+*Sticker Printer (Basic Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 32',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Grey Raining Cloud"] = {
+			type = 'Sticker',
+			desc = [["A storm's a-brewing."]],
+			buff = '+2% Blue Pollen',
+			reward = '3 Cloud Vials',
+			methods = [[*Using a Cloud Vial on the Clover Field (1 in 250 Chance)
+*Dropped by Wild Windy Bee (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Tornado"] = {
+			type = 'Sticker',
+			desc = [["A destructive force of nature."]],
+			buff = '+10% Tornado Pollen',
+			reward = '3 Cloud Vials',
+			methods = [[*Dropped by Wild Windy Bee (Extremely Rare)
+*(Not listed) Reward for finishing in the top 5 of the Daily Top Wild Windy Token Collectors Leaderboard]],
+			ids = 'type-Not_Categorized',
+		},
+		["Small Flame"] = {
+			type = 'Sticker',
+			desc = [["Heat up your hive." ]],
+			buff = '+3% Flame Pollen',
+			reward = '1 Red Extract',
+			methods = [[*Found by Fire Bee when gathering while upset (Uncommon)
+*Using the Scythe in the Blue Flower Field (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Dark Flame"] = {
+			type = 'Sticker',
+			desc = [["Someone's burning some cream of tartar."]],
+			buff = '+3% Flame Pollen',
+			reward = '5 Stingers',
+			methods = [[*Found by Demon Bee when gathering while upset (Extremely Rare)
+*Heat-Treated Planter in the Pine Tree Forest (Rare)
+*(Not listed) Heat-Treater Planter in any field (Exceptionally Rare)
+*(Not listed) Potential reward from the Mythic Gift Box]],
+			ids = 'type-Not_Categorized',
+		},
+		["Small Shield"] = {
+			type = 'Sticker',
+			desc = [["Could deflect a pebble or two."]],
+			buff = '+0.5% Dodge Chance',
+			reward = '1 Hard Wax',
+			methods = [[*Dropped by Armored Aphid (Extremely Rare)
+*Reward from Robo Bear Challenge (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Robot Head"] = {
+			type = 'Sticker',
+			desc = [["Beeps and boops."]],
+			buff = '+1% Duped Ability Pollen',
+			reward = '1 Robo Pass',
+			methods = [[*Reward from Robo Bear Challenge (Extremely Rare)
+*Using a Micro-Converter in the Hive Hub (1 in 2500 chance)
+*Sticker Sprout (Extremely Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Cyan Hilted Sword"] = {
+			type = 'Sticker',
+			desc = [["Defend your hive in style."]],
+			buff = '+2% Bee Attack',
+			reward = '10 Stingers',
+			methods = [[*Awarded to the top 25 Daily Fastest Coconut Crab Slayers
+*Dropped by Coconut Crab (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized'
+		},
+		["Cool Backpack"] = {
+			type = 'Sticker',
+			desc = [["Worn by self-sufficient folk." ]],
+			buff = '+1% Capacity',
+			reward = '1 Blue Extract',
+			methods = [[*Mythic Meteors (Extremely Rare)
+*Blue Clay Planter in the Mountain Top Field (Extremely Rare)]],
+			ids = 'type-Not_Categorized'
+		},
+		["Standing Beekeeper"] = {
+			type = 'Sticker',
+			desc = [["It's just standing there when it should be making honey."]],
+			buff = '+2% White Pollen',
+			reward = '1 Oil',
+			methods = [[*Achievement: Equip certain gear from Top Bear's Shop, then wait a while
+*Sticker Planter (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Red Wailing Cry"] = {
+			type = 'Sticker',
+			desc = [["Pure agony expressed."]],
+			buff = '+2% Instant Red Bee Conversion',
+			reward = '3 Stingers',
+			methods = [[*Achievement: Use 100,000 Royal Jellies in a row without getting a Mythic Bee
+*Dropped by Rage Aphid (Extremely Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Hourglass"] = {
+			type = 'Sticker',
+			desc = [["A somewhat reliable timekeeping method."]],
+			buff = '+20,000 Capacity',
+			reward = '5 Tickets',
+			methods = [[*Using the Wealth Clock a (1 in 250 chance)
+*The Planter Of Plenty in the Clover Field (Very Rare)
+*Sticker Printer (Gold Egg)
+*(Not listed) Potential reward from the Glass Gift Box]],
+			eggs = {
+				['Gold'] = 'About 1 in 132',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Atom Symbol"] = {
+			type = 'Sticker',
+			desc = [["Electrons orbiting a nucleus."]],
+			buff = '+5% Instant Bomb Conversion',
+			reward = '5 Neonberries',
+			methods = [[*Using the Pulsar in any field (Extremely Rare)
+*Found by Radioactive Bees (Very Rare)
+*Pesticide Planter (Unbelievably Rare)
+*Sticker Printer (Gifted Silver Egg)]],
+			eggs = {
+				['Gifted Silver'] = 'About 1 in 9',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Barcode"] = {
+			type = 'Sticker',
+			desc = [["An omnipresent method of representing data." ]],
+			buff = '+10% Convert Rate',
+			reward = '3 Soft Waxes',
+			methods = [[*Found by Digital Bee when gathering while very happy (Rare)
+*Using the Sticker-Seeker on fields in the 5 Bee Zone (Rare)
+*Hidden Sticker (Very Rare)
+*Sticker Printer (Silver Egg)]],
+			eggs = {
+				['Silver'] = 'About 1 in 10',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Wall Crack"] = {
+			type = 'Sticker',
+			desc = [["There might be something wrong with your foundation."]],
+			buff = '+10% Colorless Bee Convert Rate',
+			reward = '10 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward (Extremely Rare)
+*Hidden Sticker (Unbelievably Rare)
+*Sticker Printer (Basic Egg)]],
+			eggs = {
+				['Basic'] = 'About 1 in 2,242',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Green Circle"] = {
+			type = 'Sticker',
+			desc = [["For novice skiers."]],
+			buff = '+1% Critical Power ',
+			reward = '3 Tickets',
+			methods = [[*Found by Commander Bee when gathering while very happy (Uncommon)
+*Sticker Sprout (Uncommon)
+*Sticker Planter (Rare)
+*Sticker Printer (Basic Egg, Silver Egg, Gold Egg)
+*(Not listed) Hidden Sticker
+*(Not listed) Potential reward from the Chartreuse Gift Box]],
+			eggs = {
+				['Basic'] = 'About 1 in 225',
+				['Gold'] = 'About 1 in 26',
+				['Silver'] = 'About 1 in 19',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Blue Square"] = {
+			type = 'Sticker',
+			desc = [["For the skiers inbetween."]],
+			buff = '+2% Critical Power',
+			reward = '5 Tickets',
+			methods = [[*Found by Bumble Bee when gathering while very happy (Rare)
+*Sticker Planter (Very Rare)
+*Sticker Printer (Basic, Silver, and Gold Egg)
+*(Not listed) Hidden Sticker]],
+			eggs = {
+				['Basic'] = 'About 1 in 897',
+				['Gold'] = 'About 1 in 66',
+				['Silver'] = 'About 1 in 49',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Black Diamond"] = {
+			type = 'Sticker',
+			desc = [["Not for novice skiers."]],
+			buff = '+3% Critical Power',
+			reward = '1 Caustic Wax',
+			methods = [[*Dropped by Tunnel Bear (Unbelievably Rare)
+*Found by Diamond Bee when gathering while upset (Extremely Rare)
+*Sticker Planter (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Waxing Crescent Moon"] = {
+			type = 'Sticker',
+			desc = [["Earth's sidekick."]],
+			buff = '+1% Capacity',
+			reward = '10 Moon Charms',
+			methods = [[*Chasing Fireflies
+*Purchased in Bee Bear's Catalog for 400 Snowflakes]],
+			ids = 'type-Not_Categorized',
+		},
+		["Glowing Smile"] = {
+			type = 'Sticker',
+			desc = [["A happy little case of happenstance."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Reward for finishing in the top 25 of the Daily Firefly Chasers Leaderboard
+*Chasing Fireflies (Extremely Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Saturn"] = {
+			type = 'Sticker',
+			desc = [["The sixth planet from our Sun."]],
+			buff = '+1% Mark Ability Pollen',
+			reward = '5 Tickets',
+			methods = [[*Achievement: Connect 10 Marks at once
+*Sticker Sprout (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Black Star"] = {
+			type = 'Sticker',
+			desc = [["From a village in Norway."]],
+			buff = '+3% Bomb Pollen',
+			reward = '1 Black Balloon',
+			methods = [[*Dropped by Tunnel Bear (Unbelievably Rare)
+*Sticker-Seeker Quest Reward (Extremely Rare)
+*Using the Bronze Star Amulet Generator (1 in 100.000 chance)
+*Sticker Printer (Gifted Silver Egg)
+*Purchased in Bee Bear's Catalog for 10,000 Snowflakes]],
+			eggs = {
+				['Gifted Silver'] = 'About 1 in 15',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Cyan Star"] = {
+			type = 'Sticker',
+			desc = [["Twinkle in teal." ]],
+			buff = '+3% Instant Gifted Bee Conversion',
+			reward = '10 Tickets',
+			methods = [[*Chasing Fireflies (Nearly Impossible)
+*Using the Diamond Star Amulet Generator (1 in 10,000 Chance)
+*Sticker Printer (Star Egg, Gifted Silver Egg, Gifted Gold Egg, Gifted Diamond Egg)
+*Purchased in Bee Bear's Catalog for 10,000 Snowflakes]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 10',
+				['Gifted Gold'] = 'About 1 in 14',
+				['Gifted Silver'] = 'About 1 in 15',
+				['Star'] = 'About 1 in 6',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Shining Star"] = {
+			type = 'Sticker',
+			desc = [["Slowly losing mass." ]],
+			buff = '+0.5% Gifted Bee Pollen',
+			reward = '10 Tickets',
+			methods = [[*Found by Gifted Bees when very happy (Nearly Impossible)
+*Chasing Fireflies (Nearly Impossible)
+*Using the Gold Star Amulet Generator (1 in 100,000 chance)
+*Sticker Printer (Star Egg, Gifted Silver Egg, Gifted Gold Egg, Gifted Diamond Egg)
+*Purchased in Bee Bear's Catalog for 10,000 Snowflakes]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 10',
+				['Gifted Gold'] = 'About 1 in 14',
+				['Gifted Silver'] = 'About 1 in 15',
+				['Star'] = 'About 1 in 6',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Grey Diamond Logo"] = {
+			type = 'Sticker',
+			desc = [["Fueling ingenuity. Or something like that." ]],
+			buff = '+2% Event Bee Pollen',
+			reward = '3 Micro-Converters',
+			methods = [[*Sticker-Seeker Quest Reward (Rare)
+*Sticker Sprout (Extremely Rare)
+*Sticker Printer (Silver Egg)]],
+			eggs = {
+				['Silver'] = 'About 1 in 10',
+			},
+			ids = 'type-ROBLOX_Games'
+		},
+		["Orphan Dog"] = {
+			type = 'Sticker',
+			desc = [["This golden retriever needs a home." ]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field
+*Hidden Sticker
+*Sticker Sprout (Rare)]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Pizza Delivery Man"] = {
+			type = 'Sticker',
+			desc = [["He's hustling in this gig economy."]],
+			buff = '+10% Red Bee Convert Rate',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Rare)
+*Hidden Sticker
+*Sticker Sprout]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Interrobang Block"] = {
+			type = 'Sticker',
+			desc = [["Whatever's inside will inspire both excitement and confusion."]],
+			buff = '+1% Critical Power',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field
+*Hidden Sticker
+*Sticker Sprout (Rare)]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Theatrical Intruder"] = {
+			type = 'Sticker',
+			desc = [["It makes an unwelcome dramatic entrance."]],
+			buff = '+1% Bee Attack',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Rare)
+*Hidden Sticker
+*Sticker Sprout (Rare)]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Desperate Booth"] = {
+			type = 'Sticker',
+			desc = [["Everyone needs a little help sometimes."]],
+			buff = '+2% Honey From Tokens',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Rare)
+*Hidden Sticker
+*Sticker Sprout (Rare)]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Built Ship"] = {
+			type = 'Sticker',
+			desc = [["Perfectly constructed for treasure hunting."]],
+			buff = '+2% Blue Field Capacity',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Rare)
+*Hidden Sticker
+*Sticker Sprout (Very Rare)]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Grey Shape Companion"] = {
+			type = 'Sticker',
+			desc = [["This peculiar creature subsists purely on a diet of coins."]],
+			buff = '+2% Honey From Tokens',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Rare)
+*Hidden Sticker
+*Sticker Sprout (Rare)]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Evil Pig"] = {
+			type = 'Sticker',
+			desc = [["An innocuous cartoon gone crazy."]],
+			buff = '+1 Epic Bee Attack',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field
+*Hidden Sticker
+*Sticker Sprout (Rare)]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Waving Townsperson"] = {
+			type = 'Sticker',
+			desc = [["He greets you to the Roblox top rated sort." ]],
+			buff = '+10% Blue Bee Convert Rate',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Rare)
+*Hidden Sticker
+*Sticker Sprout (Rare)]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Cop And Robber"] = {
+			type = 'Sticker',
+			desc = [["The criminal modded a smartphone to sideload apps." ]],
+			buff = '+0.5 Blue Bee Attack',
+			reward = '3 Tickets',
+			methods = [[*Using the Sticker-Seeker in any field (Rare)
+*Hidden Sticker]],
+			ids = 'type-ROBLOX_Games',
+		},
+		["Tough Potato"] = {
+			type = 'Sticker',
+			desc = [["It's a one-tuber army."]],
+			buff = '+1% Bee Attack',
+			reward = '3 Stingers',
+			methods = [[*Sticker-Seeker Quest Reward (Uncommon)
+*Hidden Sticker (Uncommon)
+*Sticker Sprout (Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Young Elf"] = {
+			type = 'Sticker',
+			desc = [["He'll gain more polygons as he ages." ]],
+			buff = '+2% Ungifted Bee Pollen',
+			reward = '5 Paper Planters',
+			methods = [[*Using the Sticker-Seeker in the Cactus Field (Very Rare)
+*Sticker Planter on the Cactus Field (Uncommon)
+*Hidden Sticker]],
+			ids = 'type-Not_Categorized',
+		},
+		["Shrugging Heart"] = {
+			type = 'Sticker',
+			desc = [["It doesn't know what it loves."]],
+			buff = '+2% Red Pollen',
+			reward = '1 Red Extract',
+			methods = [[*Using the Sticker-Seeker in the Rose Field (Very Rare)
+*Hidden Sticker (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Classic Killroy"] = {
+			type = 'Sticker',
+			desc = [["The sneaky sniffing proto-meme."]],
+			buff = '+1% White Pollen',
+			reward = '5 Tickets',
+			methods = [[*Hidden Sticker]],
+			ids = 'type-Not_Categorized',
+		},
+		["Killroy With Hair"] = {
+			type = 'Sticker',
+			desc = [["A variation of the proto-meme."]],
+			buff = '+10% Convert Rate',
+			reward = '5 Tickets',
+			methods = [[*Hidden Sticker (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Taunting Doodle Person"] = {
+			type = 'Sticker',
+			desc = [["The disputed king of groove."]],
+			buff = '+1% Critical Power',
+			reward = '1 Enzymes',
+			methods = [[*Sticker-Seeker Quest Reward (Extremely Rare)
+*Using the Sticker-Seeker in the 15 Bee Zone (Unbelievably Rare)
+*Hidden Sticker (Unbelievably Rare)
+*Sticker Sprout (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Prehistoric Hand"] = {
+			type = 'Sticker',
+			desc = [["The handpront of someone who sadly never got to play ROBLOX."]],
+			buff = '+20% Convert Rate',
+			reward = '1 Hard Wax',
+			methods = [[*Sticker-Seeker Quest Reward (Extremely Rare)
+*Using the Sticker-Seeker in the 35 Bee Zone (Very Rare)
+*Sticker Planter in the 35 Bee Zone (Very Rare)
+*Hidden Sticker (Extremely Rare)
+*Sticker Printer (Gifted Gold Egg)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 7',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Prehistoric Boar"] = {
+			type = 'Sticker',
+			desc = [["A drawing of a certified non-GMO pig."]],
+			buff = '+2% Capacity',
+			reward = '1 Hard Wax',
+			methods = [[*Sticker-Seeker Quest Reward (Extremely Rare)
+*Using the Sticker-Seeker in the 35 Bee Zone (Very Rare)
+*Sticker Planter in the 35 Bee Zone (Very Rare)
+*Hidden Sticker (Extremely Rare)
+*Sticker Printer (Gifted Gold Egg)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 7',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Red Doodle Person"] = {
+			type = 'Sticker',
+			desc = [["Spontaneously shows up in subways."]],
+			buff = '+2% Red Field Capacity',
+			reward = '1 Red Extract',
+			methods = [[*Red Clay Planter (Unbelievably Rare)
+*Using a Red Extract in the Hive Hub (1 in 1,000 chance)
+*Hidden Sticker (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Pearl Girl"] = {
+			type = 'Sticker',
+			desc = [["A study of a painting by a Dutch master of the Baroque period."]],
+			buff = '+2% White Field Capacity',
+			reward = '1 Swirled Wax',
+			methods = [[*Sticker-Seeker Quest Reward (Extremely Rare)
+*Sticker Planter (Unbelievably Rare)
+*Sticker Sprout (Unfathomably Rare)
+*Sticker Printer (Star Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 13,177',
+				['Star'] = 'About 1 in 6',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Abstract Color Painting"] = {
+			type = 'Sticker',
+			desc = [["The colored rectangles seem to blur together."]],
+			buff = '+20,000 Capacity',
+			reward = '1 Purple Potion ',
+			methods = [[*Sticker-Seeker Quest Reward (Extremely Rare)
+*Using the Sticker-Seeker in the Hub Field (Unbelievably Rare)
+*Sticker Planter (Unbelievably Rare)
+*Sticker Sprout (Unfathomably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Prism Painting"] = {
+			type = 'Sticker',
+			desc = [["All colors you can see exists in white light."]],
+			buff = '+5% Legendary Bee Pollen',
+			reward = '10 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Sticker Sprout (Extremely Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Banana Painting"] = {
+			type = 'Sticker',
+			desc = [["Painted on a Sunday morning."]],
+			buff = '+5% Legendary Bee Pollen',
+			reward = '10 Tickets',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Sticker Sprout (Extremely Rare)]],
+			ids = 'type-Not_Categorizedmethod-Sticker_Sprout-Extremely_Rare',
+		},
+		["Moai"] = {
+			type = 'Sticker',
+			desc = [["One of many famous monolithic islanders."]],
+			buff = '+2% Capacity',
+			reward = '10 Tickets',
+			methods = [[*Found by Exhausted Bee when gathering while very happy (Unbelievably Rare)
+*Hidden Sticker (Unbelievably Rare)
+*Sticker Printer (Silver Egg, Gifted Silver Egg)]],
+			eggs = {
+				['Gifted Silver'] = 'About 1 in 9',
+				['Silver'] = 'About 1 in 97',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Nessie"] = {
+			type = 'Sticker',
+			desc = [["The lonely beast from Loch Ness." ]],
+			buff = '+2% Event Bee Pollen',
+			reward = '10 Tickets',
+			methods = [[*Hidden Sticker (Unfathomably Rare)
+*Sticker-Seeker Quest Reward (Unfathomably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Ionic Column Top"] = {
+			type = 'Sticker',
+			desc = [["Definitely not Doric."]],
+			buff = '+20,000 Capacity',
+			reward = '1 Hard Wax',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Sticker Planter in the 15 Bee Zone (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Ionic Column Middle"] = {
+			type = 'Sticker',
+			desc = [["Just a segment of a shaft."]],
+			buff = '+20,000 Capacity',
+			reward = '1 Hard Wax',
+			methods = [[*Sticker-Seeker Quest Reward (Rare)
+*Sticker Planter in the 5 Bee Zone (Extremely Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Ionic Column Base"] = {
+			type = 'Sticker',
+			desc = [["A solid foundation."]],
+			buff = '+20,000 Capacity',
+			reward = '1 Hard Wax',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Sticker Planter in the Starter Zone (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Orange Step Array"] = {
+			type = 'Sticker',
+			desc = [["A structure from another world."]],
+			buff = '+5 Convert Amount',
+			reward = '1 Enzymes',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Found by Hasty Bee when gathering while very happy (Very Rare)
+*Using the Sticker-Seeker in the Sunflower Field or Pumpkin Patch (Extremely Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 44',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Orange Green Tri Deco"] = {
+			type = 'Sticker',
+			desc = [["Snazzy and sharp."]],
+			buff = '+5 Convert Amount',
+			reward = '1 Enzymes',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Using the Sticker-Seeker in the Dandelion Field or Pumpkin Patch (Extremely Rare)
+*Puffshrooms on the Pumpkin Patch (Extremely Rare)
+*Sticker Planter (Extremely Rare)
+*Sticker Printer (Gold Egg)]],
+			eggs = {
+				['Gold'] = 'About 1 in 44',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Orange Swirled Marble"] = {
+			type = 'Sticker',
+			desc = [["A small glass orb filled with orange-red streaks."]],
+			buff = '+3% Flame Pollen',
+			reward = 'Smooth Dice 3',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Using the Sticker-Seeker in any field (Unbelievably Rare)
+*Using the Sticker-Seeker in the Hub Field (Extremely Rare)
+*Sticker Printer (Silver Egg, Diamond Egg)
+*Sticker Planter (Unbelievably Rare)
+*(Not listed) Potential reward from the Glass Gift Box]],
+			eggs = {
+				['Diamond'] = 'About 1 in 10',
+				['Silver'] = 'About 1 in 24',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Blue And Green Marble"] = {
+			type = 'Sticker',
+			desc = [["A glass orb that kinda resembles the Earth."]],
+			buff = '+2% Blue Pollen',
+			reward = 'Smooth Dice 3',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Using the Sticker-Seeker in any field (Unbelievably Rare)
+*Using the Sticker-Seeker in the Hub Field (Extremely Rare)
+*Sticker Printer (Silver Egg, Diamond Egg)
+*Sticker Planter (Unbelievably Rare)
+*(Not listed) Potential reward from the Glass Gift Box]],
+			eggs = {
+				['Diamond'] = 'About 1 in 10',
+				['Silver'] = 'About 1 in 24',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Yellow Swirled Marble"] = {
+			type = 'Sticker',
+			desc = [["A small orb with a yellow streak through the middle."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = 'Smooth Dice 3',
+			methods = [[*Sticker-Seeker Quest Reward (Very Rare)
+*Using the Sticker-Seeker in any field (Unbelievably Rare)
+*Using the Sticker-Seeker in the Hub Field (Extremely Rare)
+*Sticker Printer (Silver Egg, Diamond Egg)
+*(Not listed) Potential reward from the Glass Gift Box
+*(Not listed) Sticker Planter (Unbelievably Rare)]],
+			eggs = {
+				['Diamond'] = 'About 1 in 10',
+				['Silver'] = 'About 1 in 24',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Diamond Cluster"] = {
+			type = 'Sticker',
+			desc = [["Bedazzle your hive." ]],
+			buff = '+15% Convert Rate',
+			reward = '10 Tickets',
+			methods = [[*Found by Diamond Bee in the Mountain Top Field (Extremely Rare)
+*Found by Gifted Diamond Bee in any field (Unbelievably Rare)
+*Dropped by Diamond Aphid (Very Rare)
+*Sticker Printer (Diamond Egg, Gifted Diamond Egg)
+*(Not listed) Hidden Sticker
+*(Not listed) Potential reward from the Glass Gift Box]],
+			eggs = {
+				['Diamond'] = 'About 1 in 10',
+				['Gifted Diamond'] = 'About 1 in 10',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Diamond Trim"] = {
+			type = 'Sticker',
+			desc = [["For hives overflowing with wealth."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = '10 Tickets',
+			methods = [[*Dropped by Diamond Aphid (Uncommon)
+*Sticker Printer (Diamond Egg, Gifted Diamond Egg)
+*(Not listed) Potential reward from the Glass Gift Box]],
+			eggs = {
+				['Diamond'] = 'About 1 in 20',
+				['Gifted Diamond'] = 'About 1 in 10',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Cyan Decorative Border"] = {
+			type = 'Sticker',
+			desc = [["Resembles a snazzy M. Works well on trims."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = '10 Tickets',
+			methods = [[*Mega Memory Match (Extremely Rare)
+*Sticker Planter (Unbelievably Rare)
+*Sticker Printer (Diamond Egg, Gifted Silver Egg, Gifted Diamond Egg)]],
+			eggs = {
+				['Diamond'] = 'About 1 in 20',
+				['Gifted Diamond'] = 'About 1 in 10',
+				['Gifted Silver'] = 'About 1 in 9',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Left Gold Swirl Fleuron"] = {
+			type = 'Sticker',
+			desc = [["A decorative fleurish reserved for the greatest."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = '10 Tickets',
+			methods = [[*Possible reward for finishing in the top 100 of Daily Top Honeymaker Leaderboard
+*Dropped by Stump Snail (Unfathomably Rare)
+*Sticker Printer (Gold Egg, Gifted Gold Egg)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 114',
+				['Gold'] = 'About 1 in 1,186',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Right Gold Swirl Fleuron"] = {
+			type = 'Sticker',
+			desc = [["A decorative fleurish reserved for the greatest."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = '10 Tickets',
+			methods = [[*Possible reward for finishing in the top 100 of Daily Top Honeymaker Leaderboard
+*Dropped by Stump Snail (Unfathomably Rare)
+*Sticker Printer (Gold Egg, Gifted Gold Egg)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 114',
+				['Gold'] = 'About 1 in 1,186',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Left Shining Diamond Fleuron"] = {
+			type = 'Sticker',
+			desc = [["A pompous flourish."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = '10 Tickets',
+			methods = [[*Possible reward for finishing in the top 100 of Daily Blue Pollen Leaderboard
+*Sticker Printer (Diamond Egg, Gifted Diamond Egg)]],
+			eggs = {
+				['Diamond'] = 'About 1 in 200',
+				['Gifted Diamond'] = 'About 1 in 97',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Right Shining Diamond Fleuron"] = {
+			type = 'Sticker',
+			desc = [["A pompous flourish."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = '10 Tickets',
+			methods = [[*Possible reward for finishing in the top 100 of Daily Blue Pollen Leaderboard
+*Sticker Printer (Diamond Egg, Gifted Diamond Egg)]],
+			eggs = {
+				['Diamond'] = 'About 1 in 200',
+				['Gifted Diamond'] = 'About 1 in 97',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Left Mythic Gem Fleuron"] = {
+			type = 'Sticker',
+			desc = [["An incredible statement piece."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = '10 Tickets',
+			methods = [[*Possible reward for finishing in the top 100 of Daily Red Pollen Leaderboard
+*Sticker Printer (Mythic Egg, Gifted Mythic Egg)]],
+			eggs = {
+				['Gifted Mythic'] = 'About 1 in 26',
+				['Mythic'] = 'About 1 in 57',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Right Mythic Gem Fleuron"] = {
+			type = 'Sticker',
+			desc = [["An incredible statement piece."]],
+			buff = '+0.5% Honey Per Pollen',
+			reward = '10 Tickets',
+			methods = [[*Possible reward for finishing in the top 100 of Daily Red Pollen Leaderboard
+*Sticker Printer (Mythic Egg, Gifted Mythic Egg)]],
+			eggs = {
+				['Gifted Mythic'] = 'About 1 in 26',
+				['Mythic'] = 'About 1 in 56',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Purple Fleuron"] = {
+			type = 'Sticker',
+			desc = [["A vibrant decorative flourish."]],
+			buff = '+1% Super Crit Power',
+			reward = '1 Purple Potion ',
+			methods = [[*Sticker Printer (Mythic Egg, Gifted Mythic Egg)
+*Sticker Planter (Unbelievably Rare)
+*(Not listed) Potential reward from the Mythic Gift Box]],
+			eggs = {
+				['Gifted Mythic'] = 'About 1 in 19',
+				['Mythic'] = 'About 1 in 6',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Royal Symbol"] = {
+			type = 'Sticker',
+			desc = [["For when you can't be conveyed in words."]],
+			buff = '+1% Super Crit Power',
+			reward = '1 Purple Potion ',
+			methods = [[*Mythic Meteors (Unbelievably Rare)
+*Sticker Printer (Gifted Mythic Egg)]],
+			eggs = {
+				['Gifted Mythic'] = 'About 1 in 8',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Royal Bear"] = {
+			type = 'Sticker',
+			desc = [["From before democracy revolutionize the mountain."]],
+			buff = '+1% Super Crit Power',
+			reward = '1 Purple Potion ',
+			methods = [[*Sticker-Seeker Quest Reward (Extremely Rare)
+*Sticker Printer (Mythic Egg, Gifted Mythic Egg)
+*(Not listed) Potential reward from the Mythic Gift Box]],
+			eggs = {
+				['Gifted Mythic'] = 'About 1 in 19',
+				['Mythic'] = 'About 1 in 11',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Mythic M"] = {
+			type = 'Sticker',
+			desc = [["The M stands for Most useful bee."]],
+			buff = '+1% Mythic Bee Pollen',
+			reward = '10 Tickets',
+			methods = [[*Reward for finishing in the top 25 of the Daily Mythic Bee Pollen Leaderboard
+*Sticker Printer (Mythic Egg, Gifted Mythic Egg)
+*(Not listed) Potential reward from the Mythic Gift Box]],
+			eggs = {
+				['Gifted Mythic'] = 'About 1 in 19',
+				['Mythic'] = 'About 1 in 11',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Satisfying Nectar Icon"] = {
+			type = 'Sticker',
+			desc = [["Sweet stuff that hits the spot." ]],
+			buff = '+2% White Pollen',
+			reward = '1 Satisfying Vial',
+			methods = [[*Condensing Satisfying Nectar with the Nectar Condenser (1 in 25 chance)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Refreshing Nectar Icon"] = {
+			type = 'Sticker',
+			desc = [["The cure to feeling parched."]],
+			buff = '+1% Unique Instant Conversion',
+			reward = '1 Refreshing Vial',
+			methods = [[*Condensing Refreshing Nectar with the Nectar Condenser (1 in 25 chance)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Motivating Nectar Icon"] = {
+			type = 'Sticker',
+			desc = [["Psychoactive syrup that inspires work." ]],
+			buff = '+0.25% Bee Ability Rate',
+			reward = '1 Motivating Vial',
+			methods = [[*Condensing Motivating Nectar with the Nectar Condenser (1 in 25 chance)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Invigorating Nectar Icon"] = {
+			type = 'Sticker',
+			desc = [["Spicy syrup that gets your blood flowing."]],
+			buff = '+2% Red Pollen',
+			reward = '1 Invigorating Vial',
+			methods = [[*Condensing Invigorating Nectar with the Nectar Condenser (1 in 25 chance)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Comforting Nectar Icon"] = {
+			type = 'Sticker',
+			desc = [["The syrup that settles you down." ]],
+			buff = '+2% Blue Pollen',
+			reward = '1 Comforting Vial',
+			methods = [[*Condensing Comforting Nectar with the Nectar Condenser (1 in 25 chance)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Small Tickseed"] = {
+			type = 'Sticker',
+			desc = [["Much prettier than the name suggests."]],
+			buff = '+5% Sunflower Field Pollen',
+			reward = '10 Honeysuckles',
+			methods = [[*Using Clippers or Scissors in the Sunflower Field or Pumpkin Patch (Rare)
+*Found by Bucko Bee in the Sunflower Field or Pumpkin Patch (Uncommon)<!-- please I swear this should be Pumpkin Patch and not Clover Filed or I- -->
+*Planters in the Sunflower Field (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Small White Daisy"] = {
+			type = 'Sticker',
+			desc = [["A simple perennial."]],
+			buff = '+1% White Pollen',
+			reward = '10 Honeysuckles',
+			methods = [[*Using Clippers or Scissors in the Spider Field or Pineapple Patch (Rare)
+*Found by Hasty Bee in the Spider Field or Pineapple Patch (Uncommon)
+*Planters in the Spider Field (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Small Pink Tulip"] = {
+			type = 'Sticker',
+			desc = [["Their buds can be very valuable."]],
+			buff = '+5% Mushroom Field Pollen',
+			reward = '10 Honeysuckles',
+			methods = [[*Using Clippers or Scissors in the Mushroom Field or Strawberry Field (Rare)
+*Found by Riley Bee in the Mushroom Field or Strawberry Field (Uncommon)
+*Planters in the Strawberry Field (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Small Dandelion"] = {
+			type = 'Sticker',
+			desc = [["Scientic ''[sic]'' Name Taraxacum."]],
+			buff = '+5% Dandelion Field Pollen',
+			reward = '10 Honeysuckles',
+			methods = [[*Using Clippers or Scissors in the Dandelion Field or Clover Field (Rare)
+*Found by Frosty Bee in the Dandelion Field or Clover Field (Uncommon)
+*Planters in the Dandelion Field (Very Rare)]],
+			ids = 'type-Not_Categorized',
+		},
+		["Purple 4-Point Flower"] = {
+			type = 'Sticker',
+			desc = [["A tall and angular indigo blossom."]],
+			buff = '+1% Super Crit Power',
+			reward = '10 Tickets',
+			methods = [[*Using Clippers or Scissors in the Hub Field (Unbelievably Rare)
+*Using a Purple Potion in the Hive Hub (1 in 250 chance)
+*Sticker Printer (Mythic Egg)
+*(Not listed) Potential reward from the Mythic Gift Box]],
+			eggs = {
+				['Mythic'] = 'About 1 in 57',
+			},
+			ids = 'type-Not_Categorized',
+		},
+		["Spore Covered Puffshroom"] = {
+			type = 'Sticker',
+			desc = [["Dapper Bear's favorite fungus."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Soft Waxes',
+			methods = [[*Puffshrooms
+*Purchased in Bee Bear's Catalog for 1,200 Snowflakes]],
+			ids = 'type-Puffshroom',
+		},
+		["White Button Mushroom"] = {
+			type = 'Sticker',
+			desc = [["Commonly sliced onto salads."]],
+			buff = '+25% Common Bee Pollen',
+			reward = '3 Soft Waxes',
+			methods = [[*Puffshrooms in the 5 Bee Zone
+*Sticker Planter in the 5 Bee Zone (Very Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Fly Agaric Mushroom"] = {
+			type = 'Sticker',
+			desc = [["An iconic looking red-capped shroom."]],
+			buff = '+10% Rare Bee Pollen',
+			reward = '3 Soft Waxes',
+			methods = [[*Puffshrooms in the Starter Zone
+*Sticker Planter in the Starter Zone (Very Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Porcini Mushroom"] = {
+			type = 'Sticker',
+			desc = [["Thick, short and stout."]],
+			buff = '+5% Epic Bee Pollen',
+			reward = '3 Soft Waxes',
+			methods = [[*Puffshrooms in the 15 Bee Zone
+*Sticker Planter in the 15 Bee Zone (Very Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Oiler Mushroom"] = {
+			type = 'Sticker',
+			desc = [["Grows on stumps and mosses."]],
+			buff = '+5% Epic Bee Pollen',
+			reward = '3 Soft Waxes',
+			methods = [[*Puffshrooms in the 10 Bee Zone
+*Sticker Planter in the 10 Bee Zone (Very Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Morel Mushroom"] = {
+			type = 'Sticker',
+			desc = [["Delicious but may trigger trypophobia."]],
+			buff = '+10% Rare Bee Pollen',
+			reward = '3 Soft Waxes',
+			methods = [[*Puffshrooms in the Mountain Top Field
+*Sticker Planter in the Mountain Top Field (Extremely Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Chanterelle Mushroom"] = {
+			type = 'Sticker',
+			desc = [["A trupet-shaped delicacy."]],
+			buff = '+5% Epic Bee Pollen',
+			reward = '3 Soft Waxes',
+			methods = [[*Puffshrooms in the 35 Bee Zone
+*Sticker Planter in the 35 Bee Zone (Very Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Shiitake Mushroom"] = {
+			type = 'Sticker',
+			desc = [["A staple vegan umami source."]],
+			buff = '+1% Event Bee Pollen',
+			reward = '1 Hard Wax',
+			methods = [[*Puffshrooms in the Starter Zone or 10 Bee Zone (Very Rare)
+*Sticker Planter in the Starter Zone or 10 Bee Zone (Extremely Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Black Truffle Mushroom"] = {
+			type = 'Sticker',
+			desc = [["Has a rich, early flavor that overpowers everything."]],
+			buff = '+5% Legendary Bee Pollen',
+			reward = '1 Hard Wax',
+			methods = [[*Reward for finishing in the top 10 of the Daily Top Damage to A Single Puffshroom Leaderboard
+*Epic+ Puffshrooms (Unbelievably Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Prismatic Mushroom"] = {
+			type = 'Sticker',
+			desc = [["It can show us colors we've never seen before."]],
+			buff = '+1% Mythic Bee Pollen',
+			reward = '1 Caustic Wax',
+			methods = [[*Awarded after sticking all other mushrooms to the Sticker Stack
+*Mythic Puffshrooms (Unbelievably Rare)]],
+			ids = 'type-Puffshroom',
+		},
+		["Blowing Leaf"] = {
+			type = 'Sticker',
+			desc = [["The answer my friend."]],
+			buff = '+1% White Pollen',
+			reward = '3 Cloud Vials',
+			methods = [[*Gathering Leaves in any field (Extremely Rare)
+*Dropped by Wild Windy Bee (Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Cordate Leaf"] = {
+			type = 'Sticker',
+			desc = [["Heart-shaped leaf, nature's love letter."]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Sunflower Field or Rose Field
+*Sticker Planter in the Sunflower Field or Rose Field (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Cunate Leaf"] = {
+			type = 'Sticker',
+			desc = [["Leaf like a slender, tapering sunset."]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Strawberry Field or Pumpkin Patch
+*Sticker Planter in the Strawberry Field or Pumpkin Patch (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Elliptic Leaf"] = {
+			type = 'Sticker',
+			desc = [["Ocal elegance in every green whisper."]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Blue Flower Field or Pine Tree Forest
+*Sticker Planter in the Blue Flower Field or Pine Tree Forest (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Hastate Leaf"] = {
+			type = 'Sticker',
+			desc = [["Spear-pointed leaf, nature's valiant knight."]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Spider Field or Pepper Patch
+*Sticker Planter in the Spider Field or Pepper Patch (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Lanceolate Leaf"] = {
+			type = 'Sticker',
+			desc = [["Long, slender like a green lance."]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Dandelion Field or Bamboo Field
+*Sticker Planter in the Dandelion Field or Bamboo Field (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Lyrate Leaf"] = {
+			type = 'Sticker',
+			desc = [["Musical curves in a lyre-shaped leaf." ]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Clover Field or Mountain Top Field
+*Sticker Planter in the Clover Field or Mountain Top Field (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Oblique Leaf"] = {
+			type = 'Sticker',
+			desc = [["Asymmetry at its finest, uniquely tilted."]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Hub Field or Coconut Field
+*Sticker Planter in the Coconut Field (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Rhomboid Leaf"] = {
+			type = 'Sticker',
+			desc = [["Diamond-shaped dazzler in yellow hues." ]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Cactus Field or Stump Field
+*Sticker Planter in the Cactus Field or Stump Field (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Reniform Leaf"] = {
+			type = 'Sticker',
+			desc = [["Kidney-shaped leaf, nature's healthy organ."]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Mushroom Field or Stump Forest
+*Sticker Planter in the Mushroom Field or Stump Forest (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Spatulate Leaf"] = {
+			type = 'Sticker',
+			desc = [["Spoon-like leaf, nature's kitchen tool." ]],
+			buff = '+1% Capacity',
+			reward = '5 Tickets',
+			methods = [[*Gathering Leaves in the Pineapple Patch, Pine Tree Forest, or Pumpkin Patch
+*Sticker Planter in the Pineapple Patch or Pine Tree Forest (Very Rare)]],
+			ids = 'type-Leaf',
+		},
+		["Scooper"] = {
+			type = 'Sticker',
+			desc = [["A tool from out humble beginnings."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Scooper in any field (Extremely Rare). Higher chances in the Mountain Top Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Rake"] = {
+			type = 'Sticker',
+			desc = [["Gently scrapes pollen from flowers without harming their stems."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Rake in any field (Extremely Rare). Higher chances in the Coconut Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Clippers"] = {
+			type = 'Sticker',
+			desc = [["Don't run with these."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Clippers in any field (Extremely Rare). Higher chances in the Pine Tree Forest or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Magnet"] = {
+			type = 'Sticker',
+			desc = [["Exaggerated Electromagnetism."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Magnet in any field (Extremely Rare). Higher chances in the Pineapple Patch or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Vacuum"] = {
+			type = 'Sticker',
+			desc = [["It doesn't suck at sucking."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Vacuum in any field (Extremely Rare). Higher chances in the Rose Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Super-Scooper"] = {
+			type = 'Sticker',
+			desc = [["The blue and yellow paint job makes it more aerodynamic."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Super-Scooper in any field (Extremely Rare). Higher chances in the Clover Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Pulsar"] = {
+			type = 'Sticker',
+			desc = [["Might be radioactive."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Neonberries',
+			methods = [[*Using the Pulsar in any field (Extremely Rare). Higher chances in the Spider Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Electro-Magnet"] = {
+			type = 'Sticker',
+			desc = [["Two magnets in one for twice the pollen."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Electro-Magnet in any field (Extremely Rare). Higher chances in the Stump Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Scissors"] = {
+			type = 'Sticker',
+			desc = [["Snips and snaps."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Scissors in any field (Extremely Rare). Higher chances in the Pumpkin Patch or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Honey Dipper"] = {
+			type = 'Sticker',
+			desc = [["The prototypical Honeymaking tool." ]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Honey Dipper in any field (Extremely Rare). Higher chances in the Pepper Patch or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Bubble Wand"] = {
+			type = 'Sticker',
+			desc = [["For covering flowers in soapy water."]],
+			buff = '+2% Pollen From Tools',
+			reward = '1 Blue Extract',
+			methods = [[*Using the Bubble Wand in any field (Extremely Rare). Higher chances in the Strawberry Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Scythe"] = {
+			type = 'Sticker',
+			desc = [["Slices and burns."]],
+			buff = '+2% Pollen From Tools',
+			reward = '1 Red Extract',
+			methods = [[*Using the Scythe in any field (Extremely Rare). Higher chances in the Bamboo Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Golden Rake"] = {
+			type = 'Sticker',
+			desc = [["A superflous piece of yard work equipment."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Tickets',
+			methods = [[*Using the Golden Rake in any field (Extremely Rare). Higher chances in the Cactus Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Spark Staff"] = {
+			type = 'Sticker',
+			desc = [["Zap zap zap."]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Micro-Converters',
+			methods = [[*Using the Spark Staff in any field (Extremely Rare). Higher chances in the Mountain Top Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Porcelain Dipper"] = {
+			type = 'Sticker',
+			desc = [["A tool wielded by those still in the so called early-mid game." ]],
+			buff = '+2% Pollen From Tools',
+			reward = '3 Soft Waxes',
+			methods = [[*Using the Porcelain Dipper in any field (Extremely Rare). Higher chances in the Sunflower Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Petal Wand"] = {
+			type = 'Sticker',
+			desc = [["Spirit Bear's sun shade."]],
+			buff = '+2% Pollen From Tools',
+			reward = '10 Moon Charms',
+			methods = [[*Using the Petal Wand in any field (Extremely Rare). Higher chances in the Dandelion Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Tide Popper"] = {
+			type = 'Sticker',
+			desc = [["Waving it around creates waves."]],
+			buff = '+2% Pollen From Tools',
+			reward = '1 Blue Extract',
+			methods = [[*Using the Tide Popper in any field (Unfathomably Rare). Higher chances in the Mushroom Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Dark Scythe"] = {
+			type = 'Sticker',
+			desc = [["For flame reaping."]],
+			buff = '+2% Pollen From Tools',
+			reward = '1 Red Extract',
+			methods = [[*Using the Dark Scythe in any field (Unfathomably Rare). Higher chances in the Blue Flower Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Gummyballer"] = {
+			type = 'Sticker',
+			desc = [["A Gummy Soldier's weapon of choice."]],
+			buff = '+2% Pollen From Tools',
+			reward = '25 Gumdrops',
+			methods = [[*Using the Gummyballer in any field (Unfathomably Rare). Higher chances in the Clover Field or Hub Field.]],
+			ids = 'type-Tool',
+		},
+		["Capricorn Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Disciplined, ambitious, cautious, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between December 22 and January 19 (Unbelievably Rare)
+*Mythic Meteors between December 22 and January 19 (Unbelievably Rare)
+*Using Star Jelly between December 22 and January 19 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Stump Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 45',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Aquarius Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Innovative, detached, accentric, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between January 20 and February 18 (Unbelievably Rare)
+*Mythic Meteors between January 20 and February 18 (Unbelievably Rare)
+*Using Star Jelly between January 20 and February 18 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Mushroom Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 45',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Pisces Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Dreamy, empathetic, artistic, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between February 19 and March 20 (Unbelievably Rare)
+*Mythic Meteors between February 19 and March 20 (Unbelievably Rare)
+*Using Star Jelly between February 19 and March 20 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Pineapple Patch during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 45',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Aries Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Bold, energetic, confident, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between March 21 and April 19 (Unbelievably Rare)
+*Mythic Meteors between March 21 and April 19 (Unbelievably Rare)
+*Using Star Jelly between March 21 and April 19 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Pepper Patch (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 72',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Taurus Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Stubborn, sensual, loyal, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between April 20 and May 20 (Unbelievably Rare)
+*Mythic Meteors between April 20 and May 20 (Unbelievably Rare)
+*Using Star Jelly between April 20 and May 20 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Rose Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 72',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Gemini Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Talkative, curious, intelligence, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between May 21 and June 20 (Unbelievably Rare)
+*Mythic Meteors between May 21 and June 20 (Unbelievably Rare)
+*Using Star Jelly between May 21 and June 20 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Dandelion Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 72',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Cancer Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Emotional, nurturing, moody, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between June 21 and July 22 (Unbelievably Rare)
+*Mythic Meteors between June 21 and July 22 (Unbelievably Rare)
+*Using Star Jelly between June 21 and July 22 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Clover Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 72',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Leo Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Dramatic, outgoing, vain, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between July 23 and August 22 (Unbelievably Rare)
+*Mythic Meteors between July 23 and August 22 (Unbelievably Rare)
+*Using Star Jelly between July 23 and August 22 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Sunflower Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 72',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Virgo Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Analytical, meticulous, practical, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between August 23 and September 22 (Unbelievably Rare)
+*Mythic Meteors between August 23 and September 22 (Unbelievably Rare)
+*Using Star Jelly between August 23 and September 22 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Bamboo Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Gold'] = 'About 1 in 72',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Libra Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Diplomatic, elegant, social, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between September 23 and October 22 (Unbelievably Rare)
+*Mythic Meteors between September 23 and October 22 (Unbelievably Rare)
+*Using Star Jelly between September 23 and October 22 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Blue Flower Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 45',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Scorpio Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Intense, secretive, passionate, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between October 23 and November 21 (Unbelievably Rare)
+*Mythic Meteors between October 23 and November 21 (Unbelievably Rare)
+*Using Star Jelly between October 23 and November 21 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Spider Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 45',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Sagittarius Star Sign"] = {
+			type = 'Sticker',
+			desc = [["Adventurous, optimistic, blunt, superstitious."]],
+			buff = '+2% Capacity',
+			reward = '1 Glitter',
+			methods = [[*Chasing Fireflies between November 22 and December 21 (Unbelievably Rare)
+*Mythic Meteors between November 22 and December 21 (Unbelievably Rare)
+*Using Star Jelly between November 22 and December 21 (1 in 1,000 chance)
+*Using the Sticker-Seeker in the Mountain Top Field during Nighttime (Unfathomably Rare)
+*Sticker Printer (Star Eggs, most Gifted Eggs)]],
+			eggs = {
+				['Gifted Diamond'] = 'About 1 in 45',
+				['Gifted Mythic'] = 'About 1 in 39',
+				['Gifted Silver'] = 'About 1 in 45',
+				['Star'] = 'About 1 in 31',
+			},
+			ids = 'type-Sign',
+		},
+		["Sunflower Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Sunflower Field."]],
+			buff = '+10% Sunflower Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Sunflower Field Pollen Collectors
+*Using the Sticker-Seeker in the Sunflower Field (Unfathomably Rare)
+*Planters on the Sunflower Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Dandelion Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Dandelion Field."]],
+			buff = '+10% Dandelion Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Dandelion Field Pollen Collectors
+*Using the Sticker-Seeker in the Dandelion Field (Unfathomably Rare)
+*Planters on the Dandelion Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Mushroom Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Mushroom Field."]],
+			buff = '+10% Mushroom Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Mushroom Field Pollen Collectors
+*Using the Sticker-Seeker in the Mushroom Field (Unfathomably Rare)
+*Planters on the Mushroom Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Blue Flower Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Blue Flower Field."]],
+			buff = '+10% Blue Flower Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Blue Flower Field Pollen Collectors
+*Using the Sticker-Seeker in the Blue Flower Field (Unfathomably Rare)
+*Planters on the Blue Flower Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Clover Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Clover Field."]],
+			buff = '+10% Clover Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Clover Field Pollen Collectors
+*Using the Sticker-Seeker in the Clover Field (Unfathomably Rare)
+*Planters on the Clover Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Strawberry Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Strawberry Field."]],
+			buff = '+10% Strawberry Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Strawberry Field Pollen Collectors
+*Using the Sticker-Seeker in the Strawberry Field (Unfathomably Rare)
+*Planters on the Strawberry Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Spider Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Spider Field."]],
+			buff = '+10% Spider Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Spider Field Pollen Collectors
+*Using the Sticker-Seeker in the Spider Field (Unfathomably Rare)
+*Planters on the Spider Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Bamboo Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Bamboo Field."]],
+			buff = '+10% Bamboo Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Bamboo Field Pollen Collectors
+*Using the Sticker-Seeker in the Bamboo Field (Unfathomably Rare)
+*Planters on the Bamboo Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Pineapple Patch Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Pineapple Patch."]],
+			buff = '+10% Pineapple Patch Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Pineapple Patch Pollen Collectors
+*Using the Sticker-Seeker in the Pineapple Patch (Unfathomably Rare)
+*Planters on the Pineapple Patch (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Stump Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Stump Field."]],
+			buff = '+10% Stump Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Stump Field Pollen Collectors
+*Using the Sticker-Seeker in the Stump Field (Unfathomably Rare)
+*Planters on the Stump Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Cactus Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Cactus Field."]],
+			buff = '+10% Cactus Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Cactus Field Pollen Collectors
+*Using the Sticker-Seeker in the Cactus Field (Unfathomably Rare)
+*Planters on the Cactus Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Pumpkin Patch Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Pumpkin Patch."]],
+			buff = '+10% Pumpkin Patch Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Pumpkin Patch Pollen Collectors
+*Using the Sticker-Seeker in the Pumpkin Patch (Unfathomably Rare)
+*Planters on the Pumpkin Patch (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Pine Tree Forest Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Pine Tree Forest."]],
+			buff = '+10% Pine Tree Forest Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Pine Tree Forest Pollen Collectors
+*Using the Sticker-Seeker in the Pine Tree Forest (Unfathomably Rare)
+*Planters on the Pine Tree Forest (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Rose Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Rose Field."]],
+			buff = '+10% Rose Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Rose Field Pollen Collectors
+*Using the Sticker-Seeker in the Rose Field (Unfathomably Rare)
+*Planters on the Rose Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Hub Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Hub Field."]],
+			buff = '+10% Hub Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Hub Field Pollen Collectors
+*Using the Sticker-Seeker in the Hub Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Mountain Top Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Mountain Top Field."]],
+			buff = '+10% Mountain Top Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Mountain Top Field Pollen Collectors
+*Using the Sticker-Seeker in the Mountain Top Field (Unfathomably Rare)
+*Planters on the Mountain Top Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Pepper Patch Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Pepper Patch."]],
+			buff = '+10% Pepper Patch Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Pepper Patch Pollen Collectors
+*Using the Sticker-Seeker in the Pepper Patch (Unfathomably Rare)
+*Planters on the Pepper Patch (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Coconut Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Coconut Field."]],
+			buff = '+10% Coconut Field Pollen',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Coconut Field Pollen Collectors
+*Using the Sticker-Seeker in the Coconut Field (Unfathomably Rare)
+*Planters on the Coconut Field (Unfathomably Rare)]],
+			ids = 'type-Stamp',
+		},
+		["Ant Field Stamp"] = {
+			type = 'Sticker',
+			desc = [["Sent on letters from the Ant Field."]],
+			buff = '+0.5% Bee Attack',
+			reward = '10 Tickets',
+			methods = [[*Awarded to the Top 25 Daily Ant Challenge Scorers each day
+*Ant Challenge Reward (Unfathomably Rare)
+*Previously awarded to Top 100 Daily Ant Field Pollen Collectors]],
+			ids = 'type-Stamp',
+		},
+		["Green Beesmas Light"] = {
+			type = 'Sticker',
+			desc = [["A magical LED that exudes the Beesmas aura." ]],
+			buff = '+1% Critical Power',
+			reward = '3 Neonberries',
+			methods = [[*Catching a Green Falling Beesmas Light (1 in 10,000 chance)
+*Was a potential reward from the Flourescent Gift Box of 2024
+*Was potentially included in the Blinding Bundle in Bee Bear's Catalog 2024]],
+			ids = 'type-Not_Categorized event-Beesmas',
+		},
+		["Blue Beesmas Light"] = {
+			type = 'Sticker',
+			desc = [["A magical LED that exudes the Beesmas aura." ]],
+			buff = '+2% Blue Pollen',
+			reward = '3 Neonberries',
+			methods = [[*Catching a Blue Falling Beesmas Light (1 in 10,000 chance)
+*Was a potential reward from the Flourescent Gift Box of 2024
+*Was potentially included in the Blinding Bundle in Bee Bear's Catalog 2024]],
+			ids = 'type-Not_Categorized event-Beesmas',
+		},
+		["Red Beesmas Light"] = {
+			type = 'Sticker',
+			desc = [["A magical LED that exudes the Beesmas aura." ]],
+			buff = '+2% Red Pollen',
+			reward = '3 Neonberries',
+			methods = [[*Catching a Red Falling Beesmas Light (1 in 10,000 chance)
+*Was a potential reward from the Flourescent Gift Box of 2024
+*Was potentially included in the Blinding Bundle in Bee Bear's Catalog 2024]],
+			ids = 'type-Not_Categorized event-Beesmas',
+		},
+		["Yellow Beesmas Light"] = {
+			type = 'Sticker',
+			desc = [["A magical LED that exudes the Beesmas aura." ]],
+			buff = '+10% Convert Rate',
+			reward = '3 Neonberries',
+			methods = [[*Catching a Yellow Falling Beesmas Light (1 in 10,000 chance)
+*Was a potential reward from the Flourescent Gift Box of 2024
+*Was potentially included in the Blinding Bundle in Bee Bear's Catalog 2024]],
+			ids = 'type-Not_Categorized event-Beesmas',
+		},
+		["Critter In A Stocking"] = {
+			type = 'Sticker',
+			desc = [["It's stealing your goodies."]],
+			buff = '+2% Bee Gathering Pollen',
+			reward = '1 Magic Bean',
+			methods = [[*Brown Bear's Stockings (Extremely Rare)
+*Included in the Critter Comforts Pack in Bee Bear's Catalog
+*Was included in the Purple Planter Pack of 2024]],
+			ids = 'type-Animal event-Beesmas',
+		},
+		["Flying Festive Bee"] = {
+			type = 'Sticker',
+			desc = [["On its way to give out gifts!"]],
+			buff = '+10% Red Bee Convert Rate',
+			reward = '1 Red Extract',
+			methods = [[*Festive Gifts and Festive Wreaths in Red Fields during Beesmas (Unbelivevably Rare, odds increase with level)
+*Purchased in Bee Bear's Catalog
+*Was included in the Gifted Giga-Bundle of 2024]],
+			ids = 'type-Bee event-Beesmas',
+		},
+		["Flying Bee Bear"] = {
+			type = 'Sticker',
+			desc = [["He is flying at over 25,000 MPH."]],
+			buff = '+1% Event Bee Pollen',
+			reward = '10 Tickets',
+			methods = [[*Festive Sprouts (Rare)
+*Festive Planter (Rare)]],
+			ids = 'type-Bear event-Beesmas',
+		},
+		["Party Robo Bear"] = {
+			type = 'Sticker',
+			desc = [["Celebrate our manufacturing date!" ]],
+			buff = '+1% Duped Ability Pollen',
+			reward = '1 Robo Pass',
+			methods = [[*Reward for completing rank 32 of the Robo Party Cake
+*Dropped by Party Mega Mechsquito (Unbelievably Rare)]],
+			ids = 'type-Not_Categorized event-Beesmas',
+		},
+		["Festive Pufferfish"] = {
+			type = 'Sticker',
+			desc = [["They call him ol' Saint Puff." ]],
+			buff = '+2% Bomb Pollen',
+			reward = '10 Tickets',
+			methods = [[*Was included in the Pokey Gift Box of 2024
+*Reward from Bee Bear's 17th quest of Winter 24/25]],
+			ids = 'type-Animal event-Beesmas',
+		},
+		["Festive Pea"] = {
+			type = 'Sticker',
+			desc = [["The unassuming VIP of the honeyday arsenal."]],
+			buff = '+1% Gifted Bee Attack',
+			reward = '1 Magic Bean',
+			methods = [[*Supreme Sprouts during Beesmas
+*Was included in the Pea Power Bundle in Bee Bear's Catalog of Summer 2024]],
+			ids = 'type-Not_Categorized event-Beesmas',
+		},
+		["BBM From Below"] = {
+			type = 'Sticker',
+			desc = [["Gaze into this abyss, and.. it'll gaze too... at you..."]],
+			buff = 'x1.01 Pollen',
+			reward = '1 Box-O-Frogs',
+			methods = [[*Reward from the Mondo Gift Box]],
+			ids = 'type-Not_Categorized event-Beesmas',
+		}
+	},
+	
+	indexOrder = {
+		"Play Button",
+		"Gamer Chat Icon",
+		"Flying Rad Bee",
+		"Flying Ninja Bee",
+		"Flying Brave Bee",
+		"Flying Photon Bee",
+		"Drooping Stubborn Bee",
+		"Wobbly Looker Bee",
+		"Blob Bumble Bee",
+		"Round Rascal Bee",
+		"Round Basic Bee",
+		"Diamond Diamond Bee",
+		"4-Pronged Vector Bee",
+		"Shocked Hive Slot",
+		"Bear Bee Offer",
+		"Tabby Scratch",
+		"Tabby From Behind",
+		"Fuzz Bomb",
+		"Precise Eye",
+		"Chef Hat Polar Bear",
+		"Honey Bee Bear",
+		"Bomber Bee Bear",
+		"Uplooking Bear",
+		"Sitting Green Shirt Bear",
+		"Shy Brown Bear",
+		"Sitting Mother Bear",
+		"Squashed Head Bear",
+		"Stretched Head Bear",
+		"Panicked Science Bear",
+		"Dapper From Above",
+		"Sideways Spirit Bear",
+		"Glowering Gummy Bear",
+		"Stranded Sun Bear",
+		"Menacing Mantis",
+		"Little Scorpion",
+		"Left Facing Ant",
+		"Walking Stick Nymph",
+		"Forward Facing Spider",
+		"Forward Facing Aphid",
+		"Right Facing Stump Snail",
+		"Standing Bean Bug",
+		"Small Blue Chick",
+		"Tadpole",
+		"Happy Fish",
+		"Coiled Snake",
+		"Standing Caterpillar",
+		"Round Green Critter",
+		"Flying Magenta Critter",
+		"Blue Triangle Critter",
+		"Purple Pointed Critter",
+		"Orange Leg Critter",
+		"Green Plus Sign",
+		"Green Check Mark",
+		"Red X",
+		"Alert Icon",
+		"Yellow Right Arrow",
+		"Yellow Left Arrow",
+		"Simple Sun",
+		"Pink Cupcake",
+		"Rubber Duck",
+		"Baseball Swing",
+		"Yellow Coffee Mug",
+		"Launching Rocket",
+		"Thumbs Up Hand",
+		"Peace Sign Hand",
+		"Traffic Light",
+		"Window",
+		"Simple Skyscraper",
+		"Simple Mountain",
+		"Pale Heart",
+		"Colorful Buttons",
+		"Giraffe",
+		"Silly Tongue",
+		"White Flag",
+		"Pyramid",
+		"Tiny House",
+		"TNT",
+		"Wishbone",
+		"Yellow Umbrella",
+		"Red Palm Hand",
+		"Yellow Sticky Hand",
+		"Yellow Walking Wiggly Person",
+		"Green SELL",
+		"Yellow Hi",
+		"AFK",
+		"Auryn",
+		"Pink Chair",
+		"Doodle S",
+		"Triple Exclamation",
+		"Eighth Note",
+		"Eviction",
+		"Fork And Knife",
+		"Shining Halo",
+		"Rhubarb",
+		"Sprout",
+		"Palm Tree",
+		"Jack-O-Lantern",
+		"Lightning",
+		"Simple Cloud",
+		"Grey Raining Cloud",
+		"Tornado",
+		"Small Flame",
+		"Dark Flame",
+		"Small Shield",
+		"Robot Head",
+		"Cyan Hilted Sword",
+		"Cool Backpack",
+		"Standing Beekeeper",
+		"Red Wailing Cry",
+		"Hourglass",
+		"Atom Symbol",
+		"Barcode",
+		"Wall Crack",
+		"Green Circle",
+		"Blue Square",
+		"Black Diamond",
+		"Waxing Crescent Moon",
+		"Glowing Smile",
+		"Saturn",
+		"Black Star",
+		"Cyan Star",
+		"Shining Star",
+		"Grey Diamond Logo",
+		"Orphan Dog",
+		"Pizza Delivery Man",
+		"Interrobang Block",
+		"Theatrical Intruder",
+		"Desperate Booth",
+		"Built Ship",
+		"Grey Shape Companion",
+		"Evil Pig",
+		"Waving Townsperson",
+		"Cop And Robber",
+		"Tough Potato",
+		"Young Elf",
+		"Shrugging Heart",
+		"Classic Killroy",
+		"Killroy With Hair",
+		"Taunting Doodle Person",
+		"Prehistoric Hand",
+		"Prehistoric Boar",
+		"Red Doodle Person",
+		"Pearl Girl",
+		"Abstract Color Painting",
+		"Prism Painting",
+		"Banana Painting",
+		"Moai",
+		"Nessie",
+		"Ionic Column Top",
+		"Ionic Column Middle",
+		"Ionic Column Base",
+		"Orange Step Array",
+		"Orange Green Tri Deco",
+		"Orange Swirled Marble",
+		"Blue And Green Marble",
+		"Yellow Swirled Marble",
+		"Diamond Cluster",
+		"Diamond Trim",
+		"Cyan Decorative Border",
+		"Left Gold Swirl Fleuron",
+		"Right Gold Swirl Fleuron",
+		"Left Shining Diamond Fleuron",
+		"Right Shining Diamond Fleuron",
+		"Left Mythic Gem Fleuron",
+		"Right Mythic Gem Fleuron",
+		"Purple Fleuron",
+		"Royal Symbol",
+		"Royal Bear",
+		"Mythic M",
+		"Satisfying Nectar Icon",
+		"Refreshing Nectar Icon",
+		"Motivating Nectar Icon",
+		"Invigorating Nectar Icon",
+		"Comforting Nectar Icon",
+		"Small Tickseed",
+		"Small White Daisy",
+		"Small Pink Tulip",
+		"Small Dandelion",
+		"Purple 4-Point Flower",
+		"Spore Covered Puffshroom",
+		"White Button Mushroom",
+		"Fly Agaric Mushroom",
+		"Porcini Mushroom",
+		"Oiler Mushroom",
+		"Morel Mushroom",
+		"Chanterelle Mushroom",
+		"Shiitake Mushroom",
+		"Black Truffle Mushroom",
+		"Prismatic Mushroom",
+		"Blowing Leaf",
+		"Cordate Leaf",
+		"Cunate Leaf",
+		"Elliptic Leaf",
+		"Hastate Leaf",
+		"Lanceolate Leaf",
+		"Lyrate Leaf",
+		"Oblique Leaf",
+		"Rhomboid Leaf",
+		"Reniform Leaf",
+		"Spatulate Leaf",
+		"Scooper",
+		"Rake",
+		"Clippers",
+		"Magnet",
+		"Vacuum",
+		"Super-Scooper",
+		"Pulsar",
+		"Electro-Magnet",
+		"Scissors",
+		"Honey Dipper",
+		"Bubble Wand",
+		"Scythe",
+		"Golden Rake",
+		"Spark Staff",
+		"Porcelain Dipper",
+		"Petal Wand",
+		"Tide Popper",
+		"Dark Scythe",
+		"Gummyballer",
+		"Capricorn Star Sign",
+		"Aquarius Star Sign",
+		"Pisces Star Sign",
+		"Aries Star Sign",
+		"Taurus Star Sign",
+		"Gemini Star Sign",
+		"Cancer Star Sign",
+		"Leo Star Sign",
+		"Virgo Star Sign",
+		"Libra Star Sign",
+		"Scorpio Star Sign",
+		"Sagittarius Star Sign",
+		"Sunflower Field Stamp",
+		"Dandelion Field Stamp",
+		"Mushroom Field Stamp",
+		"Blue Flower Field Stamp",
+		"Clover Field Stamp",
+		"Strawberry Field Stamp",
+		"Spider Field Stamp",
+		"Bamboo Field Stamp",
+		"Pineapple Patch Stamp",
+		"Stump Field Stamp",
+		"Cactus Field Stamp",
+		"Pumpkin Patch Stamp",
+		"Pine Tree Forest Stamp",
+		"Rose Field Stamp",
+		"Hub Field Stamp",
+		"Mountain Top Field Stamp",
+		"Pepper Patch Stamp",
+		"Coconut Field Stamp",
+		"Ant Field Stamp",
+		"Green Beesmas Light",
+		"Blue Beesmas Light",
+		"Red Beesmas Light",
+		"Yellow Beesmas Light",
+		"Critter In A Stocking",
+		"Flying Festive Bee",
+		"Flying Bee Bear",
+		"Party Robo Bear",
+		"Festive Pufferfish",
+		"Festive Pea",
+		"BBM From Below",
+	},
+}
+end)()
+
 	-- Sticker grid picker (keep / delete / stack). Icon + tooltip fields are UNVERIFIED guesses, falls back to text.
 	local stickerPickerLogged = false
 
@@ -3737,14 +6946,59 @@ do
 		return found
 	end
 
-	local function resolveStickerTip(def)
-		if type(def) == "table" then
+	local stickerLookup = nil
+	local stickerOrder = nil
+
+	local function normStickerName(s)
+		return string.lower((string.gsub(tostring(s), "[^%w]", "")))
+	end
+
+	local function getStickerInfo(name)
+		if not stickerLookup then
+			stickerLookup, stickerOrder = {}, {}
+			local data = ui.StickerData
+			if type(data) == "table" then
+				for n, info in pairs(data.stickerData or {}) do
+					stickerLookup[normStickerName(n)] = info
+				end
+				for i, n in ipairs(data.indexOrder or {}) do
+					stickerOrder[normStickerName(n)] = i
+				end
+			end
+		end
+		return stickerLookup[normStickerName(name)]
+	end
+
+	local function stickerCategory(info)
+		local ids = info and info.ids
+		if type(ids) ~= "string" then
+			return nil
+		end
+		local cat = string.match(ids, "type%-([%w_ ]-)%s*event") or string.match(ids, "type%-([%w_ ]+)") or ""
+		return (string.gsub(cat, "_", " "))
+	end
+
+	local function resolveStickerTip(def, name)
+		local lines = {}
+		local info = name and getStickerInfo(name)
+		if info then
+			if info.desc then table.insert(lines, (string.gsub(info.desc, "^%s*(.-)%s*$", "%1"))) end
+			if info.buff then table.insert(lines, "Buff: " .. info.buff) end
+			if info.reward then table.insert(lines, "Reward: " .. info.reward) end
+			local cat = stickerCategory(info)
+			if cat and cat ~= "" then table.insert(lines, "Category: " .. cat) end
+			if info.methods then table.insert(lines, "\n" .. info.methods) end
+		end
+		if #lines == 0 and type(def) == "table" then
 			for _, key in ipairs({ "Tooltip", "ToolTip", "Description", "Desc", "Text", "Effect" }) do
 				local v = def[key]
 				if type(v) == "string" and v ~= "" then
 					return v
 				end
 			end
+		end
+		if #lines > 0 then
+			return table.concat(lines, "\n")
 		end
 		return nil
 	end
@@ -3774,7 +7028,14 @@ do
 				table.insert(names, name)
 			end
 		end
-		table.sort(names)
+		getStickerInfo("")
+		table.sort(names, function(a, b)
+			local ia, ib = stickerOrder[normStickerName(a)], stickerOrder[normStickerName(b)]
+			if ia and ib then return ia < ib end
+			if ia then return true end
+			if ib then return false end
+			return a < b
+		end)
 
 		if not stickerPickerLogged then
 			stickerPickerLogged = true
@@ -3818,7 +7079,7 @@ do
 		search.Font = Enum.Font.GothamBold
 		search.TextSize = 12
 		search.TextColor3 = Color3.new(1, 1, 1)
-		search.PlaceholderText = "Search"
+		search.PlaceholderText = "Search name/buff/type"
 		search.PlaceholderColor3 = Color3.fromRGB(150, 150, 155)
 		search.Text = ""
 		search.ClearTextOnFocus = false
@@ -3879,6 +7140,10 @@ do
 		tip.TextSize = 13
 		tip.TextColor3 = Color3.new(1, 1, 1)
 		tip.TextWrapped = true
+		tip.TextXAlignment = Enum.TextXAlignment.Left
+		tip.TextYAlignment = Enum.TextYAlignment.Top
+		tip.AutomaticSize = Enum.AutomaticSize.Y
+		tip.TextSize = 12
 		tip.Visible = false
 		tip.Size = UDim2.new(0, 180, 0, 20)
 		tip.ZIndex = 60
@@ -3896,7 +7161,7 @@ do
 				e.check.Visible = on
 				e.stroke.Color = on and Color3.fromRGB(80, 220, 110) or Color3.fromRGB(60, 60, 64)
 				e.stroke.Thickness = on and 2 or 1
-				local show = (q == "" or string.find(string.lower(e.name), q, 1, true))
+				local show = (q == "" or string.find(e.hay, q, 1, true))
 				if filterMode == 2 and not on then
 					show = false
 				elseif filterMode == 3 and on then
@@ -3941,15 +7206,15 @@ do
 			check.Parent = btn
 
 			local text = name
-			local extra = resolveStickerTip(def)
+			local extra = resolveStickerTip(def, name)
 			if extra then
 				text = name .. "\n" .. extra
 			end
 			local function showTip()
 				tip.Text = text
-				tip.Size = UDim2.new(0, 200, 0, extra and 40 or 20)
+				tip.Size = UDim2.new(0, 230, 0, 20)
 				local rel = btn.AbsolutePosition - win.AbsolutePosition
-				tip.Position = UDim2.new(0, math.clamp(rel.X - 60, 4, 96), 0, math.clamp(rel.Y + 52, 4, 536 - 90))
+				tip.Position = UDim2.new(0, math.clamp(rel.X - 60, 4, 96), 0, math.clamp(rel.Y + 52, 4, 536 - 200))
 				tip.Visible = true
 			end
 
@@ -3968,7 +7233,9 @@ do
 				refresh()
 			end)
 
-			table.insert(entries, { name = name, btn = btn, check = check, stroke = stroke })
+			local info = getStickerInfo(name)
+			local hay = string.lower(name .. " " .. (info and ((info.buff or "") .. " " .. (stickerCategory(info) or "")) or ""))
+			table.insert(entries, { name = name, hay = hay, btn = btn, check = check, stroke = stroke })
 		end
 
 		filterBtn.MouseButton1Click:Connect(function()
