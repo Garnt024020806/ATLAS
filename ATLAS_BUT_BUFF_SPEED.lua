@@ -7024,7 +7024,7 @@ end)()
 
 		local names = {}
 		for name, def in pairs(types) do
-			if type(name) == "string" and not string.find(name, "Star Sign") and not string.find(name, "Cub Skin") and not string.find(name, "Hive Skin") then
+			if type(name) == "string" and not string.find(name, "Cub Skin") and not string.find(name, "Hive Skin") then
 				table.insert(names, name)
 			end
 		end
