@@ -66846,15 +66846,13 @@ do
 				"PlentyPlanter",
 			},
 		},
-		HatchEgg = function()
-			local honeycomb, v135
+		HatchEgg = function(progression, honeycomb, eggType)
+			local v135 = true
 
 			for k in pairs(honeycomb) do
 				v135 = nil
 				break
 			end
-
-			local eggType, progression
 
 			if not v135 then
 				local emptyCell
