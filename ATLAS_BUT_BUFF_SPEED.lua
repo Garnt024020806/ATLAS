@@ -71143,6 +71143,21 @@ more accurate dodging]],
 									maxStep = Vector3.new(wp.X - hrp.Position.X, 0, wp.Z - hrp.Position.Z).Magnitude
 								end
 
+								-- Anti-slide: remove leftover horizontal momentum while on the ground
+								if cfg.vars.movement ~= "Tween" and hum.Health > 0 and hum.FloorMaterial ~= Enum.Material.Air then
+									local vel = hrp.AssemblyLinearVelocity
+									if not moving then
+										-- stopped: brake instantly instead of coasting
+										if Vector3.new(vel.X, 0, vel.Z).Magnitude > 0.1 then
+											hrp.AssemblyLinearVelocity = Vector3.new(0, vel.Y, 0)
+										end
+									else
+										-- moving: keep only the speed along the input direction (no sideways drift when turning)
+										local moveUnit = dir.Unit
+										local along = math.max(0, vel.X * moveUnit.X + vel.Z * moveUnit.Z)
+										hrp.AssemblyLinearVelocity = Vector3.new(moveUnit.X * along, vel.Y, moveUnit.Z * along)
+									end
+								end
 								if method == "CFrame" then
 									-- Method 2: leave WalkSpeed alone, push the root part the missing distance each frame
 									local extra = target - hum.WalkSpeed
