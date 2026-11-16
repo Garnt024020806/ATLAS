@@ -152,6 +152,8 @@ local cfg = {
 		patternenabled = false,
 		patternblacklist = false,
 		patternstart = "Center",
+		patterntokens = true,
+		patterntokenrange = 25,
 		sprinklerpos = "Center",
 		pattern = "CornerXSnake",
 		autopopstar = true,
@@ -47923,6 +47925,13 @@ Content-Disposition: form-data; name="payload_json"
 					end
 				end
 
+				-- dashboard now expects honey_12h as a list (index 0..180), not a {["149"]=...} table
+				local honeyList = {}
+				for i = 0, 180 do
+					honeyList[i + 1] = copy.honey_12h and copy.honey_12h[tostring(i)] or 0
+				end
+				copy.honey_12h = honeyList
+
 				httprequest({
 					Headers = { ["Content-Type"] = "application/json", ["X-API-Key"] = cfg.webhook.key },
 					Method = "POST",
@@ -55966,7 +55975,78 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			end
 		end
 
-		walkPattern = function()
+		walkPattern = function(opts)
+			-- grab tokens within range of the player while the pattern is running
+			local function grabNearbyTokens()
+				if cfg.autofarm.patterntokens == false then
+					return false
+				end
+
+				local tokenOpts = {}
+				for k, v in pairs(opts or {}) do
+					tokenOpts[k] = v
+				end
+				tokenOpts.origin = getRootPart().Position
+				tokenOpts.range = cfg.autofarm.patterntokenrange or 25
+
+				local grabbed = false
+				for _ = 1, 5 do
+					local kind, token = pickTarget(tokenOpts)
+					if kind ~= "Token" or not token then
+						break
+					end
+					collectToken(token)
+					grabbed = true
+					tokenOpts.origin = getRootPart().Position
+				end
+				return grabbed
+			end
+
+			-- same as walkTo(dest, true, 0), but detours to nearby tokens and then resumes the walk
+			local function patternWalk(dest)
+				local humanoid = getHumanoid()
+				if humanoid.Health == 0 then
+					error("return", 0)
+				end
+
+				humanoid:MoveTo(dest)
+				local moveStart = os.clock()
+				local timeout = 2 + distanceTo(dest, true) / humanoid.WalkSpeed
+				local lastScan = 0
+
+				while true do
+					RunService.Heartbeat:Wait()
+					humanoid = getHumanoid()
+
+					if humanoid.Health == 0 then
+						error("return", 0)
+					end
+
+					if distanceTo(dest, true) < 3 then
+						return
+					end
+
+					if os.clock() - moveStart > 0.3 and humanoid.MoveDirection.Magnitude == 0 then
+						return
+					end
+
+					if os.clock() - moveStart > timeout then
+						error("return", 0)
+					end
+
+					if os.clock() - lastScan > 0.15 then
+						lastScan = os.clock()
+
+						if grabNearbyTokens() then
+							humanoid = getHumanoid()
+							humanoid:MoveTo(dest)
+							moveStart = os.clock()
+							timeout = 2 + distanceTo(dest, true) / humanoid.WalkSpeed
+						end
+					end
+				end
+			end
+
 			local x = vector.X
 			local z = vector.Z
 			local pattern = patterns[cfg.autofarm.pattern]
@@ -56037,10 +56117,10 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 					error("return", 0)
 				elseif i ~= 1 then
 					if i > 4 then
-						walkTo(applyMoves(move), true, 0)
+						patternWalk(applyMoves(move))
 					end
 				else
-					walkTo(target, true, 0)
+					patternWalk(target)
 				end
 			end
 		end
@@ -68105,7 +68185,7 @@ do
 						farmStep(options)
 					end
 				else
-					walkPattern()
+					walkPattern(options)
 				end
 			else
 				local v136 = { [tracked.mondo.HumanoidRootPart.Position] = 40 }
@@ -68984,6 +69064,14 @@ which bees and get all 3 targets if
 			end
 
 			patternFolder.AddSwitch("Use Pattern", nil, "autofarm", "patternenabled")
+			if cfg.autofarm.patterntokens == nil then
+				cfg.autofarm.patterntokens = true
+			end
+			if cfg.autofarm.patterntokenrange == nil then
+				cfg.autofarm.patterntokenrange = 25
+			end
+			patternFolder.AddSwitch("Collect Tokens In Pattern", nil, "autofarm", "patterntokens")
+			patternFolder.AddSlider("Pattern Token Range", nil, 5, 60, "autofarm", "patterntokenrange")
 			local Pattern = patternFolder.AddDropdown("Pattern", { "CornerXSnake", "Tideshift", "Diamond", "Square", "E_lol" }, nil, nil, "autofarm", "pattern")
 
 			if cfg.misc.custompatterns then
