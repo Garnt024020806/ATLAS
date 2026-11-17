@@ -1636,6 +1636,34 @@ do
 		end
 	end))
 
+	-- popup windows (item pickers / modals) can be dragged by their title strip
+	local dragWindows = { Modal = true, BQGrid = true, StickerPicker = true }
+
+	connections:Add("dragwindows", ScreenGui.ChildAdded:Connect(function(child)
+		if not (child:IsA("GuiObject") and dragWindows[child.Name]) then
+			return
+		end
+
+		child.Active = true
+		local handle = Instance.new("Frame")
+		handle.Name = "DragHandle"
+		handle.BackgroundTransparency = 1
+		handle.BorderSizePixel = 0
+		handle.Size = UDim2.new(1, -140, 0, 34)
+		handle.ZIndex = 100
+		handle.Parent = child
+
+		handle.InputBegan:Connect(function(n)
+			if n.UserInputType == Enum.UserInputType.MouseButton1 or n.UserInputType == Enum.UserInputType.Touch then
+				if not dragState then
+					dragState = {}
+				end
+
+				dragState[child] = { n.Position, child.Position }
+			end
+		end)
+	end))
+
 	local title = _G.title and string.find(string.lower(_G.title), "atlas") and not string.find(string.lower(_G.title), "pre") and not string.find(string.lower(_G.title), "paid") and _G.title or "ATLAS"
 	local uicolor = _G.uicolor and _G.uicolor or Color3.fromRGB(41, 74, 122)
 	local isDesktop = ScreenGui.AbsoluteSize.X >= 850 and ScreenGui.AbsoluteSize.Y >= 500
@@ -1974,8 +2002,8 @@ do
 		Frame8.Name = "Modal"
 		Frame8.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
 		Frame8.BorderSizePixel = 0
-		Frame8.Position = UDim2.new(0.5, -150, 0.05, 0)
-		Frame8.Size = UDim2.new(0, 300, 0.9, 0)
+		Frame8.Position = UDim2.new(0.5, -130, 0.08, 0)
+		Frame8.Size = UDim2.new(0, 260, 0.6, 0)
 		uiParts.modal = Frame8
 		local UICorner5 = Instance.new("UICorner")
 		UICorner5.Name = "UICorner"
@@ -1993,14 +2021,14 @@ do
 		ScrollingFrame.Parent = Frame8
 		local UIListLayout3 = Instance.new("UIListLayout")
 		UIListLayout3.SortOrder = Enum.SortOrder.LayoutOrder
-		UIListLayout3.Padding = UDim.new(0, 16)
+		UIListLayout3.Padding = UDim.new(0, 6)
 		UIListLayout3.Parent = ScrollingFrame
 		local UIPadding2 = Instance.new("UIPadding")
 		UIPadding2.Name = "UIPadding"
-		UIPadding2.PaddingLeft = UDim.new(0, 10)
-		UIPadding2.PaddingRight = UDim.new(0, 10)
-		UIPadding2.PaddingTop = UDim.new(0, 10)
-		UIPadding2.PaddingBottom = UDim.new(0, 10)
+		UIPadding2.PaddingLeft = UDim.new(0, 6)
+		UIPadding2.PaddingRight = UDim.new(0, 6)
+		UIPadding2.PaddingTop = UDim.new(0, 6)
+		UIPadding2.PaddingBottom = UDim.new(0, 6)
 		UIPadding2.Parent = ScrollingFrame
 		local TextButton3 = Instance.new("TextButton")
 		TextButton3.Name = "Close"
@@ -2048,6 +2076,22 @@ do
 		TextLabel3.TextXAlignment = Enum.TextXAlignment.Left
 		TextLabel3.Size = UDim2.new(1, 0, 0, 20)
 		TextLabel3.Parent = Frame9
+	end
+
+	-- remember the design font size of every prototype so font scaling always starts from the same base
+	do
+		for _, part in pairs(uiParts) do
+			if typeof(part) == "Instance" then
+				local objs = part:GetDescendants()
+				table.insert(objs, part)
+
+				for _, d in ipairs(objs) do
+					if d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox") then
+						d:SetAttribute("BaseTextSize", d.TextSize)
+					end
+				end
+			end
+		end
 	end
 
 	do
@@ -2370,9 +2414,9 @@ do
 
 	if isDesktop then
 		Frame8.BackgroundTransparency = 0
-		ImageLabel.Size = UDim2.new(0, 750, 0, 400)
-		vector2 = Vector2.new(750, 400)
-		vector22 = Vector2.new(750, 400)
+		ImageLabel.Size = UDim2.new(0, 640, 0, 360)
+		vector2 = Vector2.new(520, 300)
+		vector22 = Vector2.new(640, 360)
 		local UICorner6 = Instance.new("UICorner")
 		UICorner6.CornerRadius = UDim.new(0, 5)
 		UICorner6.Parent = Frame8
@@ -3395,8 +3439,8 @@ do
 					Frame12.Name = "Modal"
 					Frame12.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
 					Frame12.BorderSizePixel = 0
-					Frame12.Position = UDim2.new(0.5, -125, 0.125, 0)
-					Frame12.Size = UDim2.new(0, 250, 0.75, 0)
+					Frame12.Position = UDim2.new(0.5, -115, 0.1, 0)
+					Frame12.Size = UDim2.new(0, 230, 0.6, 0)
 					Frame12.Parent = ScreenGui
 					local UICorner8 = Instance.new("UICorner")
 					UICorner8.Name = "UICorner"
@@ -7055,8 +7099,8 @@ end)()
 		win.Name = "StickerPicker"
 		win.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
 		win.BorderSizePixel = 0
-		win.Position = UDim2.new(0.5, -150, 0.5, -268)
-		win.Size = UDim2.new(0, 300, 0, 536)
+		win.Position = UDim2.new(0.5, -150, 0.5, -220)
+		win.Size = UDim2.new(0, 300, 0, 440)
 		win.ZIndex = 50
 		win.Parent = ScreenGui
 		Instance.new("UICorner", win).CornerRadius = UDim.new(0, 4)
@@ -7265,8 +7309,8 @@ end)()
 		win.Name = "BQGrid"
 		win.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
 		win.BorderSizePixel = 0
-		win.Position = UDim2.new(0.5, -150, 0.05, 0)
-		win.Size = UDim2.new(0, 300, 0.9, 0)
+		win.Position = UDim2.new(0.5, -130, 0.08, 0)
+		win.Size = UDim2.new(0, 260, 0.55, 0)
 		win.ZIndex = 50
 		win.Parent = ScreenGui
 		Instance.new("UICorner", win).CornerRadius = UDim.new(0, 4)
@@ -7299,7 +7343,7 @@ end)()
 			AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 51,
 		}, win)
 		mk("UIGridLayout", {
-			CellSize = UDim2.new(0, 84, 0, 78), CellPadding = UDim2.new(0, 6, 0, 6), SortOrder = Enum.SortOrder.LayoutOrder,
+			CellSize = UDim2.new(0, 76, 0, 66), CellPadding = UDim2.new(0, 4, 0, 4), SortOrder = Enum.SortOrder.LayoutOrder,
 		}, scroll)
 
 		-- bottom panel for the focused item
@@ -7438,7 +7482,7 @@ end)()
 			stroke.Parent = frame
 
 			local iconImg = mk("ImageLabel", {
-				BackgroundTransparency = 1, Position = UDim2.new(0.5, -26, 0, 4), Size = UDim2.new(0, 52, 0, 52),
+				BackgroundTransparency = 1, Position = UDim2.new(0.5, -20, 0, 3), Size = UDim2.new(0, 40, 0, 40),
 				ScaleType = Enum.ScaleType.Fit, ZIndex = 53,
 			}, frame)
 			pcall(function()
@@ -71621,8 +71665,8 @@ more accurate dodging]],
 				local applyToken = 0
 				local scaledWindows = { Modal = true, BQGrid = true, StickerPicker = true }
 
-				local UI_MIN, UI_MAX = 80, 150
-				local FONT_MIN, FONT_MAX = 90, 150
+				local UI_MIN, UI_MAX = 60, 150
+				local FONT_MIN, FONT_MAX = 70, 150
 
 				-- default UI size follows the screen size (baseline 1600x900 = 100%), font default stays 100
 				local function autoUiDefault()
@@ -71632,7 +71676,7 @@ more accurate dodging]],
 						return 100
 					end
 
-					return math.clamp(math.floor(math.min(size.X / 1600, size.Y / 900) * 100 + 0.5), UI_MIN, UI_MAX)
+					return math.clamp(math.floor(math.min(size.X / 1600, size.Y / 900) * 100 + 0.5), UI_MIN, 100)
 				end
 
 				local function autoFontDefault()
@@ -71655,7 +71699,7 @@ more accurate dodging]],
 						return
 					end
 
-					local base = fontOriginal[obj]
+					local base = fontOriginal[obj] or obj:GetAttribute("BaseTextSize")
 
 					if not base then
 						base = obj.TextSize
@@ -71733,6 +71777,7 @@ more accurate dodging]],
 
 				UiFolder.Toggle(true, true)
 				applyAll()
+				task.delay(1.5, applyAll)
 			end
 
 			do
