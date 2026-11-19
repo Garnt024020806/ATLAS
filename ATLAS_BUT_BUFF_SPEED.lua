@@ -661,6 +661,8 @@ local cfg = {
 		plantnight = false,
 		amount = false,
 		left = 0,
+		spam = false,
+		spamcooldown = 6,
 	},
 	stickbug = {
 		enabled = false,
@@ -61481,7 +61483,11 @@ do
 							end
 						end
 
-						if not sproutInField and inventory:Use("Magic Bean") then
+						-- Spam Sprout: replant even if a sprout already exists, but only once the cooldown since the last spam plant has passed
+						local spamOk = cfg.sprouts.spam and os.clock() - (inventory.time["Spam Sprout"] or 0) >= (cfg.sprouts.spamcooldown or 6)
+
+						if (not sproutInField or spamOk) and inventory:Use("Magic Bean") then
+							inventory.time["Spam Sprout"] = os.clock()
 							local sprouts = cfg.sprouts
 							sprouts.left = sprouts.left - 1
 							controls["Sprouts Left"].Text = "Amount Left: " .. cfg.sprouts.left
@@ -69090,6 +69096,8 @@ which bees and get all 3 targets if
 				sproutFolder.AddSwitch("Collect Tokens", nil, "sprouts", "collect")
 				sproutFolder.AddSwitch("Plant During Day Only", nil, "sprouts", "plantday")
 				sproutFolder.AddSwitch("Plant During Night Only", nil, "sprouts", "plantnight")
+				sproutFolder.AddSwitch("Spam Sprout (Wait Cooldown)", nil, "sprouts", "spam")
+				sproutFolder.AddSlider("Spam Sprout Cooldown", nil, 1, 30, "sprouts", "spamcooldown", { Left = true })
 
 				sproutFolder.AddTextBox("Amount To Plant", function(n)
 					local G = tonumber(n)
