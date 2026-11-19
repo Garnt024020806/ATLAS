@@ -608,6 +608,10 @@ local cfg = {
 		buydrives = false,
 		usedrives = false,
 		goldcogmowers = true,
+		goldcogmax = 20,
+		stacker = false,
+		stackerrbc = false,
+		stackerround = 20,
 		trackmobs = false,
 		precise = false,
 		precisemin = 5,
@@ -59585,7 +59589,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 				toyUse:Do("Winter Memory Match")
 			end
 
-			if bees >= 15 and not (not cfg.toys.stickerstacker or buffs["Sticker Stacker"]) then
+			if bees >= 15 and not (not cfg.toys.stickerstacker or cfg.rbc.stackerrbc and cfg.rbc.stacker or buffs["Sticker Stacker"]) then
 				local ok3 = not toyUse.time["Sticker Stacker"]
 
 				if not ok3 then
@@ -65981,7 +65985,7 @@ do
 				rbc.disableroundend = true
 			end
 
-			if not (not cfg.toys.stickerstacker or not (not not (state.bees >= 15) and not buffs["Sticker Stacker"])) then
+			if not (not (cfg.toys.stickerstacker or cfg.rbc.stacker and currentRound >= cfg.rbc.stackerround) or not (not not (state.bees >= 15) and not buffs["Sticker Stacker"])) then
 				local ok3 = not toyUse.time["Sticker Stacker"]
 
 				if not ok3 then
@@ -66087,9 +66091,9 @@ do
 							end
 						end
 
-						if not cogmowerTask and (not cfg.rbc.goldcogmowers or not (currentRound < 20)) or not rbc:HandleCogmowers(cogmowerTask) then
+						if not cogmowerTask and (not cfg.rbc.goldcogmowers or not (currentRound < cfg.rbc.goldcogmax)) or not rbc:HandleCogmowers(cogmowerTask) then
 							if not cfg.convert.convertHoney and not cfg.convert.convertHiveBalloon or not shouldConvert(true) then
-								if not (not cfg.toys.stickerstacker or not (not not (state.bees >= 15) and not buffs["Sticker Stacker"])) then
+								if not (not (cfg.toys.stickerstacker or cfg.rbc.stacker and currentRound >= cfg.rbc.stackerround) or not (not not (state.bees >= 15) and not buffs["Sticker Stacker"])) then
 									local ok4 = not toyUse.time["Sticker Stacker"]
 
 									if not ok4 then
@@ -70736,6 +70740,10 @@ which bees and get all 3 targets if
 				rbcFolder.AddSwitch("Reroll Bees For Digital", nil, "rbc", "rerollbees")
 				rbcFolder.AddSlider("Maximum Rerolls", nil, 0, 5, "rbc", "rerollbeesmax", { Left = true })
 				rbcFolder.AddSwitch("Kill Gold Cogmowers", nil, "rbc", "goldcogmowers")
+				rbcFolder.AddSlider("Gold Cogmower Max Round", nil, 1, 22, "rbc", "goldcogmax", { Left = true })
+				rbcFolder.AddSwitch("RBC Sticker Stacker", nil, "rbc", "stacker")
+				rbcFolder.AddSwitch("Only Use Stacker During RBC", nil, "rbc", "stackerrbc")
+				rbcFolder.AddSlider("Stacker Minimum Round", nil, 1, 25, "rbc", "stackerround", { Left = true })
 
 				rbcFolder.AddSwitch("Track Mobs", function(n)
 					if n then
