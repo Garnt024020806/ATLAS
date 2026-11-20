@@ -166,7 +166,7 @@ local cfg = {
 		smileytime = 4,
 		farmcombococonuts = true,
 		combofield = false,
-		comboamount = 0,
+		comboamount = 0, -- 0 = no limit (combo continuously), max 100
 		farmblooms = false,
 		farmpetals = true,
 		farmbubbles = false,
@@ -68835,8 +68835,8 @@ do
 				farmFolder.AddSwitch("Farm Petals", nil, "autofarm", "farmpetals")
 				farmFolder.AddSwitch("Farm Bubbles", nil, "autofarm", "farmbubbles")
 				farmFolder.AddSwitch("Farm Coconuts", nil, "autofarm", "farmcoconuts")
-				farmFolder.AddSwitch("Farm Combo Coconuts", nil, "autofarm", "farmcombococonuts", { Tooltip = "Maximum Combo 0 = No Limit" })
-				farmFolder.AddSlider("Maximum Combo Amount", nil, 0, 20, "autofarm", "comboamount", { Left = true })
+				farmFolder.AddSwitch("Farm Combo Coconuts", nil, "autofarm", "farmcombococonuts", { Tooltip = "Maximum Combo 0 = No Limit (combo continuously, default)" })
+				farmFolder.AddSlider("Maximum Combo Amount", nil, 0, 100, "autofarm", "comboamount", { Left = true })
 				farmFolder.AddSwitch("Change Field During Combo (Alt)", nil, "autofarm", "combofield")
 
 				farmFolder.AddSwitch("Farm Duped Tokens", function(n)
