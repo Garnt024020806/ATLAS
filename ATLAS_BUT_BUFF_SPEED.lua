@@ -58316,7 +58316,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 				gameApi:Event("WindShrineTrigger")
 				task.wait(0.5)
 
-				farmFor({
+				local shrineFarmOpts = {
 					ignoreflower = true,
 					ignorefield = true,
 					ignoreprio = true,
@@ -58324,7 +58324,54 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 					range = 50,
 					loot2 = true,
 					loot = true,
-				}, 20)
+				}
+
+				-- Counts tokens still on the ground within the shrine's loot range
+				local function countShrineTokens()
+					local count = 0
+
+					for k in pairs(tracked.tokens) do
+						if (position2 - k.Position).magnitude < shrineFarmOpts.range then
+							count = count + 1
+						end
+					end
+
+					for k in pairs(tracked.tokenlink) do
+						if (position2 - k.Position).magnitude < shrineFarmOpts.range then
+							count = count + 1
+						end
+					end
+
+					return count
+				end
+
+				-- Initial pass: give the wind tokens time to spawn and start collecting
+				farmFor(shrineFarmOpts, 20)
+
+				-- Keep collecting until the area stays empty for 3 checks in a row (hard cap 90s)
+				local deadline = os.clock() + 90
+				local emptyChecks = 0
+
+				while os.clock() < deadline do
+					if countShrineTokens() == 0 then
+						emptyChecks = emptyChecks + 1
+
+						if emptyChecks >= 3 then
+							break
+						end
+
+						task.wait(0.5)
+					else
+						emptyChecks = 0
+						farmFor(shrineFarmOpts, 2, 0.5)
+					end
+				end
+
+				if countShrineTokens() > 0 then
+					logger.warn("Wind Shrine: tokens left uncollected:", countShrineTokens())
+				else
+					logger.log("Wind Shrine: all tokens collected")
+				end
 			end
 		end
 
