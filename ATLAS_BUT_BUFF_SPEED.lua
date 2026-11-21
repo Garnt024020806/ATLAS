@@ -11112,6 +11112,7 @@ do
 		end
 	end
 
+	-- พากลับเข้า currentField ถ้าหลุดออกมา: เดินก่อน ถ้าติดขอบ/พื้นต่างระดับแล้วยังไม่เข้า field จะ tween กลับให้อัตโนมัติ
 	goToField = function()
 		if getFieldAt(getRootPart().Position) ~= currentField then
 			if not state.fasttween then
@@ -11125,10 +11126,17 @@ do
 				input.pressKey(Enum.KeyCode.LeftShift)
 			end
 
+			local tweenTarget = position + Vector3.new(0, (currentFieldName == "Coconut Field" or currentFieldName == "Stump Field") and 16 or 9, currentFieldName == "Coconut Field" and -10 or 0)
+
 			if cfg.vars.movement ~= "Tween" then
 				travelTo(position + Vector3.new(0, 0, currentFieldName == "Coconut Field" and -10 or 0), currentFieldName)
+
+				-- travelTo จะ return เงียบๆ เมื่อตัวละครติดขอบ (พื้นต่างระดับ) -> fallback เป็น tween (noclip) เข้า field
+				if getFieldAt(getRootPart().Position) ~= currentField and getHumanoid().Health > 0 then
+					tweenTo(tweenTarget)
+				end
 			else
-				tweenTo(position + Vector3.new(0, (currentFieldName == "Coconut Field" or currentFieldName == "Stump Field") and 16 or 9, currentFieldName == "Coconut Field" and -10 or 0))
+				tweenTo(tweenTarget)
 			end
 
 			if getFieldAt(getRootPart().Position) ~= currentField then
