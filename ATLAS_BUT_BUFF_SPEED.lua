@@ -49828,6 +49828,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			["rbxassetid://1442863423"] = "Blue Boost",
 		}
 
+		-- เลือกเป้าหมายถัดไปสำหรับ farmStep (token/cloud/leaf ฯลฯ); opts.anyfield = true จะเก็บ token ได้แม้อยู่นอกขอบ field ปัจจุบัน
 		pickTarget = function(opts)
 			local fallbackToken = nil
 			local bestToken = nil
@@ -49890,7 +49891,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 						tokenIsCached = k.Name == true
 						icon = tokenIsCached and k.Icon or k.FrontDecal.Texture
 
-						if not (not opts.loot2 and not (not autofarm.ignorehoneytokens and not opts.loot or not (icon == "rbxassetid://1472135114" or icon == "rbxassetid://2028574353")) or not ((not opts.checkheight or math.abs(k.Position.Y - getRootPart().Position.Y) < 6) and not ((not opts.ignorefield or getFieldAt(k.Position)) and not (not opts.ignorefield and getFieldAt(k.Position) == currentField) or not (not opts.avoid or not isPathClear(k.Position, opts.avoid))))) then
+						if not (not opts.loot2 and not (not autofarm.ignorehoneytokens and not opts.loot or not (icon == "rbxassetid://1472135114" or icon == "rbxassetid://2028574353")) or not ((not opts.checkheight or math.abs(k.Position.Y - getRootPart().Position.Y) < 6) and not (not opts.anyfield and ((not opts.ignorefield or getFieldAt(k.Position)) and not (not opts.ignorefield and getFieldAt(k.Position) == currentField)) or not (not opts.avoid or not isPathClear(k.Position, opts.avoid))))) then
 							tokenDistance = distanceTo(k.Position, true)
 
 							if not opts.ignoreprio and (not bestToken or tokenDistance < bestToken.d) and not ((not tokenIsCached or not k.Rainbow) and not (not tokenIsCached and k:FindFirstChild("Spots") or not ((not opts.loot or not tokenPriority.sprout[string.match(icon, "%d+")]) and not (not opts.loot and tokenPriority.autofarm[string.match(icon, "%d+")])))) then
@@ -60622,6 +60623,7 @@ end
 
 local farmPuffshroom
 
+-- ฟาร์ม Puffshroom: เดินไปตี แล้วเก็บ token ที่ drop ทุกชนิด (ยกเว้น honey token) ในรัศมี 25 จากตัวเห็ด รวมถึงที่ตกนอกขอบ field
 farmPuffshroom = function(v119)
 	local puffshroom, puffRarity, puffLevel = findPuffshroom(v119)
 	if not puffshroom then
@@ -60660,7 +60662,7 @@ farmPuffshroom = function(v119)
 				farmState.field = field.Name
 			end
 
-			local farmOptions = { loot = true, origin = position2, range = 25 }
+			local farmOptions = { loot = true, anyfield = true, origin = position2, range = 25 }
 			local now = os.clock()
 			local exitTo = nil
 
