@@ -71316,6 +71316,7 @@ more accurate dodging]],
 					if not enabled then
 						threads:Cancel("walkspeed")
 					else
+						-- เธรดวนทุก Heartbeat เพื่อใช้ความเร็วตามวิธีที่เลือก (Humanoid/Friction/CFrame/Velocity)
 						threads:Add("walkspeed", function()
 							local frictionProps = PhysicalProperties.new(0.7, 2, 0, 100, 1)
 							while true do
@@ -71364,10 +71365,10 @@ more accurate dodging]],
 									end
 								end
 								if method == "CFrame" then
-									-- Method 2: leave WalkSpeed alone, push the root part the missing distance each frame
-									local extra = target - hum.WalkSpeed
+									-- Method 2: ดัน root part ไปข้างหน้าด้วยค่า speed เต็มๆ ทุกเฟรม (บวกเพิ่มจาก WalkSpeed ปกติโดยตรง)
+									local extra = target
 									if extra > 0 and moving then
-										local step = math.min(math.min(extra, 200) * dt, maxStep)
+										local step = extra * dt
 										local unit = dir.Unit
 										local params = RaycastParams.new()
 										params.FilterDescendantsInstances = { char }
@@ -71377,9 +71378,9 @@ more accurate dodging]],
 										end
 									end
 								elseif method == "Velocity" then
-									-- Method 3: physics tween. Set horizontal velocity directly (same idea as the Tween movement mode), keep Y so jumps/falls stay normal
+									-- Method 3: ตั้งความเร็วแนวราบเป็นค่า speed เต็มๆ โดยตรง ไม่ลด/ไม่ clamp (คง Y ไว้ให้กระโดด/ตกปกติ)
 									if moving then
-										local speed = math.min(target, math.max(hum.WalkSpeed, maxStep * 10))
+										local speed = target
 										local unit = dir.Unit
 										local params = RaycastParams.new()
 										params.FilterDescendantsInstances = { char }
