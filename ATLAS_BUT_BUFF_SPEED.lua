@@ -3447,8 +3447,8 @@ do
 					Frame12.Name = "Modal"
 					Frame12.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
 					Frame12.BorderSizePixel = 0
-					Frame12.Position = UDim2.new(0.5, -115, 0.1, 0)
-					Frame12.Size = UDim2.new(0, 230, 0.6, 0)
+					Frame12.Position = UDim2.new(0.5, -130, 0.08, 0)
+					Frame12.Size = UDim2.new(0, 260, 0.6, 0)
 					Frame12.Parent = ScreenGui
 					local UICorner8 = Instance.new("UICorner")
 					UICorner8.Name = "UICorner"
@@ -7107,8 +7107,8 @@ end)()
 		win.Name = "StickerPicker"
 		win.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
 		win.BorderSizePixel = 0
-		win.Position = UDim2.new(0.5, -150, 0.5, -220)
-		win.Size = UDim2.new(0, 300, 0, 440)
+		win.Position = UDim2.new(0.5, -130, 0.08, 0)
+		win.Size = UDim2.new(0, 260, 0.6, 0)
 		win.ZIndex = 50
 		win.Parent = ScreenGui
 		Instance.new("UICorner", win).CornerRadius = UDim.new(0, 4)
@@ -7128,7 +7128,7 @@ end)()
 		local search = Instance.new("TextBox")
 		search.BackgroundColor3 = Color3.fromRGB(55, 58, 66)
 		search.BorderSizePixel = 0
-		search.Position = UDim2.new(0, 75, 0, 36)
+		search.Position = UDim2.new(0, 55, 0, 36)
 		search.Size = UDim2.new(0, 150, 0, 22)
 		search.Font = Enum.Font.GothamBold
 		search.TextSize = 12
@@ -7144,7 +7144,7 @@ end)()
 		local filterBtn = Instance.new("TextButton")
 		filterBtn.BackgroundColor3 = Color3.fromRGB(70, 74, 84)
 		filterBtn.BorderSizePixel = 0
-		filterBtn.Position = UDim2.new(0, 75, 0, 62)
+		filterBtn.Position = UDim2.new(0, 55, 0, 62)
 		filterBtn.Size = UDim2.new(0, 150, 0, 22)
 		filterBtn.Font = Enum.Font.GothamBold
 		filterBtn.TextSize = 12
@@ -7318,7 +7318,7 @@ end)()
 		win.BackgroundColor3 = Color3.fromRGB(27, 27, 29)
 		win.BorderSizePixel = 0
 		win.Position = UDim2.new(0.5, -130, 0.08, 0)
-		win.Size = UDim2.new(0, 260, 0.55, 0)
+		win.Size = UDim2.new(0, 260, 0.6, 0)
 		win.ZIndex = 50
 		win.Parent = ScreenGui
 		Instance.new("UICorner", win).CornerRadius = UDim.new(0, 4)
@@ -9387,6 +9387,55 @@ end)()
 		end
 	end
 
+	-- ปลุก Autofarm ถ้า thread ยังอยู่ใน list แต่ตายแล้ว (ถูก cancel โดย fastTweenPause แล้วไม่ถูกเริ่มใหม่)
+	state.ensureAutofarm = function()
+		if state.stop or not cfg.autofarm.enabled then
+			return false
+		end
+		local cur = threads.list.Autofarm
+		local callback = threads.callbacks.Autofarm
+		if cur and callback and coroutine.status(cur) == "dead" then
+			threads.list.Autofarm = nil
+			threads:Add("Autofarm", callback)
+			return true
+		end
+		return false
+	end
+
+	-- tween ไปหา rare แบบปลอดภัย: ถ้า error/tween ค้างกลางทาง ก็ยัง Resume + ล้าง state.fasttween เสมอ (กัน Autofarm ค้างนิ่ง)
+	state.runFastTween = function(target)
+		local distance = distanceTo(target)
+		local duration = distance / state.fastTweenSpeed()
+		stopMovement()
+		state.fastTweenPause(true, duration)
+		state.fasttween = true
+		local ok, err = pcall(function()
+			local tween = TweenService:Create(getRootPart(), TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(target) })
+			local done = false
+			local conn = tween.Completed:Connect(function()
+				done = true
+			end)
+			tween:Play()
+			local startedAt = os.clock()
+			-- รอ tween จบ แต่ไม่รอเกิน duration+2 วิ (กัน Completed ไม่ยิงตอนตายตอนรีสปอน)
+			while not done and os.clock() - startedAt < duration + 2 do
+				RunService.Heartbeat:Wait()
+			end
+			conn:Disconnect()
+			if not done then
+				pcall(function()
+					tween:Cancel()
+				end)
+			end
+			task.wait(distance > 200 and 0.3 or 0.1)
+		end)
+		state.fastTweenResume()
+		state.fasttween = nil
+		if not ok then
+			logger.warn("fast rare tween error: " .. tostring(err))
+		end
+	end
+
 	-- เปิดฟีเจอร์กลับหลัง fast tween จบ: walk speed ทำงานต่อเอง, คืนค่า stopface, เริ่ม Autofarm ใหม่ถ้าเคยถูกหยุด, ล้างความเร็วค้าง
 	state.fastTweenResume = function()
 		state.fastTweenDepth = (state.fastTweenDepth or 1) - 1
@@ -9411,6 +9460,8 @@ end)()
 				end
 			end
 		end
+		-- กันพลาด: ถ้า Autofarm ยังเป็น thread ที่ตายแล้ว (ถูก cancel ตอน pause แต่ไม่ได้ restart) ให้ปลุกใหม่
+		state.ensureAutofarm()
 	end
 	-- watchdog: ถ้า fastTweenPause ค้าง (เช่น ตายระหว่าง tween / thread ที่ต้อง Resume ถูกยกเลิก)
 	-- Autofarm จะถูกหยุดค้างและตัวละครยืนนิ่ง -> บังคับ Resume เมื่อเลยเวลาที่คาดไว้
@@ -9424,22 +9475,27 @@ end)()
 				state.fasttween = nil
 				state.fastTweenResume()
 			end
+
+			-- Autofarm ค้างเป็น thread ที่ตายแล้ว (ไม่มี fast tween ทำงานอยู่) ติดกัน 2 รอบ -> ปลุกใหม่
+			if (state.fastTweenDepth or 0) == 0 and not state.fasttween and state.ensureAutofarm then
+				local cur = threads.list.Autofarm
+				if cur and coroutine.status(cur) == "dead" then
+					state.deadAutofarmTicks = (state.deadAutofarmTicks or 0) + 1
+					if state.deadAutofarmTicks >= 2 and state.ensureAutofarm() then
+						logger.log("fastTween watchdog: Autofarm was dead, restarted")
+						state.deadAutofarmTicks = 0
+					end
+				else
+					state.deadAutofarmTicks = 0
+				end
+			end
 		end
 	end)
 
 	if workspace:FindFirstChild("Collectibles") then
 		local function v69(target)
-			local distance = distanceTo(target)
-			local tween = TweenService:Create(getRootPart(), TweenInfo.new(distance / state.fastTweenSpeed(), Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(target) })
-			stopMovement()
 			logger.log("Collecting rare item")
-			state.fastTweenPause(true, distance / state.fastTweenSpeed())
-			state.fasttween = true
-			tween:Play()
-			tween.Completed:Wait()
-			task.wait(distance > 200 and 0.3 or 0.1)
-			state.fastTweenResume()
-			state.fasttween = nil
+			state.runFastTween(target)
 		end
 
 		connections:Add("collectibles", workspace.Collectibles.ChildAdded:Connect(function(n)
@@ -45995,19 +46051,10 @@ do
 					end)
 				end
 			else
-				local distance = distanceTo(tokenData.Pos)
-				local tween = TweenService:Create(getRootPart(), TweenInfo.new(distance / state.fastTweenSpeed(), Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(tokenData.Pos) })
-				stopMovement()
-				state.fastTweenPause(true, distance / state.fastTweenSpeed())
-				state.fasttween = true
-				tween:Play()
 				threadCount += 1
 
 				threads:Add(threadCount, function()
-					tween.Completed:Wait()
-					task.wait(distance > 200 and 0.3 or 0.1)
-					state.fastTweenResume()
-					state.fasttween = nil
+					state.runFastTween(tokenData.Pos)
 				end)
 			end
 		end,
