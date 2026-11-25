@@ -71382,9 +71382,8 @@ more accurate dodging]],
 									if moving then
 										local speed = target
 										local unit = dir.Unit
-										local params = RaycastParams.new()
-										params.FilterDescendantsInstances = { char }
-										if not workspace:Raycast(hrp.Position, unit * 3, params) then
+										-- ใส่ความเร็วตรงๆ เสมอ ไม่เช็คกำแพง (ray เดิมชนของที่ไม่ตัน เช่น token/ดอกไม้ ทำให้ความเร็วไม่ถูกใส่)
+										do
 											local v = hrp.AssemblyLinearVelocity
 											hrp.AssemblyLinearVelocity = Vector3.new(unit.X * speed, v.Y, unit.Z * speed)
 										end
