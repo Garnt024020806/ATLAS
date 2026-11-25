@@ -1139,7 +1139,7 @@ stopMovement = function()
 	end
 end
 
-local threads = { list = {} }
+local threads = { list = {}, callbacks = {} }
 local connections = { list = {} }
 
 gameApi.SetupSecureCall = function()
@@ -1438,6 +1438,7 @@ threads.Add = function(manager, threadId, callback)
 
 	if thread then
 		manager.list[threadId] = thread
+		manager.callbacks[threadId] = callback
 	end
 end
 
@@ -1454,6 +1455,7 @@ threads.Cancel = function(manager, threadId)
 		end)
 
 		manager.list[threadId] = nil
+		manager.callbacks[threadId] = nil
 	end
 end
 
@@ -9337,16 +9339,89 @@ end)()
 		partymegamech = {},
 	}
 
+	-- คำนวณความเร็ว fast tween ให้เท่ากับความเร็วเดินทางปกติ: โหมด Tween = tweenspeed*10, โหมด Walk = walkspeed ที่ตั้งไว้
+	state.fastTweenSpeed = function()
+		if cfg.vars.movement == "Tween" then
+			return math.max(cfg.vars.tweenspeed, 1) * 10
+		end
+		local speed = getHumanoid().WalkSpeed
+		if cfg.vars.walkspeedenabled then
+			speed = math.min(cfg.vars.walkspeed, cfg.vars.unlockspeed and 200 or 90)
+			if cfg.vars.walkdynamic then
+				local modifiers = gameApi:Cache({ "ModifierCaches", "Value" })
+				if modifiers and modifiers.PlayerMovespeed and modifiers.PlayerMovespeed._ then
+					speed = math.min(speed, modifiers.PlayerMovespeed._ * cfg.vars.walkspeed2)
+				end
+			end
+		end
+		return math.max(speed, 1)
+	end
+
+	-- ปิดฟีเจอร์ที่ยุ่งกับตัวละครก่อน fast tween: หยุด walk speed, หยุด thread หมุนหน้า, หยุด Autofarm (ถ้า includeAutofarm), คืน WalkSpeed/physics เดิม กันโดนดึงกลับ
+	state.fastTweenPause = function(includeAutofarm)
+		state.fastTweenDepth = (state.fastTweenDepth or 0) + 1
+		if state.fastTweenDepth > 1 then
+			return
+		end
+		state.fastTweenActive = true
+		state.fastTweenPrevFace = state.stopface
+		state.stopface = true
+		state.fastTweenPaused = {}
+		if includeAutofarm then
+			local thread = threads.list.Autofarm
+			local callback = threads.callbacks.Autofarm
+			if thread and callback then
+				pcall(task.cancel, thread)
+				state.fastTweenPaused.Autofarm = { thread = thread, callback = callback }
+			end
+		end
+		if cfg.vars.walkspeedenabled then
+			local hum = getHumanoid()
+			getRootPart().CustomPhysicalProperties = nil
+			local modifiers = gameApi:Cache({ "ModifierCaches", "Value" })
+			if modifiers and modifiers.PlayerMovespeed and modifiers.PlayerMovespeed._ then
+				hum.WalkSpeed = modifiers.PlayerMovespeed._
+			end
+		end
+	end
+
+	-- เปิดฟีเจอร์กลับหลัง fast tween จบ: walk speed ทำงานต่อเอง, คืนค่า stopface, เริ่ม Autofarm ใหม่ถ้าเคยถูกหยุด, ล้างความเร็วค้าง
+	state.fastTweenResume = function()
+		state.fastTweenDepth = (state.fastTweenDepth or 1) - 1
+		if state.fastTweenDepth > 0 then
+			return
+		end
+		state.fastTweenDepth = 0
+		state.stopface = state.fastTweenPrevFace
+		state.fastTweenPrevFace = nil
+		state.fastTweenActive = nil
+		pcall(function()
+			getRootPart().AssemblyLinearVelocity = Vector3.zero
+		end)
+		local paused = state.fastTweenPaused
+		state.fastTweenPaused = nil
+		if paused then
+			for name, info in pairs(paused) do
+				-- เริ่มใหม่เฉพาะถ้ายังไม่มีใครปิด/เปลี่ยน thread นี้ระหว่างรอ
+				if threads.list[name] == info.thread and not state.stop then
+					threads.list[name] = nil
+					threads:Add(name, info.callback)
+				end
+			end
+		end
+	end
 	if workspace:FindFirstChild("Collectibles") then
 		local function v69(target)
 			local distance = distanceTo(target)
-			local tween = TweenService:Create(getRootPart(), TweenInfo.new(distance / 200, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(target) })
+			local tween = TweenService:Create(getRootPart(), TweenInfo.new(distance / state.fastTweenSpeed(), Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(target) })
 			stopMovement()
 			logger.log("Collecting rare item")
+			state.fastTweenPause(true)
 			state.fasttween = true
 			tween:Play()
 			tween.Completed:Wait()
 			task.wait(distance > 200 and 0.3 or 0.1)
+			state.fastTweenResume()
 			state.fasttween = nil
 		end
 
@@ -45905,8 +45980,9 @@ do
 				end
 			else
 				local distance = distanceTo(tokenData.Pos)
-				local tween = TweenService:Create(getRootPart(), TweenInfo.new(distance / 200, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(tokenData.Pos) })
+				local tween = TweenService:Create(getRootPart(), TweenInfo.new(distance / state.fastTweenSpeed(), Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(tokenData.Pos) })
 				stopMovement()
+				state.fastTweenPause(true)
 				state.fasttween = true
 				tween:Play()
 				threadCount += 1
@@ -45914,6 +45990,7 @@ do
 				threads:Add(threadCount, function()
 					tween.Completed:Wait()
 					task.wait(distance > 200 and 0.3 or 0.1)
+					state.fastTweenResume()
 					state.fasttween = nil
 				end)
 			end
@@ -55364,17 +55441,25 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			if useTween then
 				local linear = Enum.EasingStyle.Linear
 				local out = Enum.EasingDirection.Out
-				TweenService:Create(getRootPart(), TweenInfo.new(distanceTo(object.Position) / 400, linear, out), { CFrame = CFrame.new(object.Position) }):Play()
+				local tweenTime = distanceTo(object.Position) / state.fastTweenSpeed()
+				state.fastTweenPause(false)
+				TweenService:Create(getRootPart(), TweenInfo.new(tweenTime, linear, out), { CFrame = CFrame.new(object.Position) }):Play()
 			end
 
 			while true do
 				if cloudMode then
 					if not ((buffs.Cloud and buffs.Cloud.Size.Y.Scale or 0) < 0.8) then
+						if useTween then
+							state.fastTweenResume()
+						end
 						return
 					end
 				end
 
 				if not RunService.Heartbeat:Wait() then
+					if useTween then
+						state.fastTweenResume()
+					end
 					return
 				end
 
@@ -55395,6 +55480,10 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 				if not useTween and not (not keepMoving or not (not cloudMode or not not (distanceTo(object.Position, true) > 6))) then
 					getHumanoid():MoveTo(object.Position)
 				end
+			end
+
+			if useTween then
+				state.fastTweenResume()
 			end
 
 			if not trackedKey then
@@ -71328,6 +71417,11 @@ more accurate dodging]],
 									continue
 								end
 
+								-- กำลัง fast tween: หยุดแก้ความเร็ว/ตำแหน่งชั่วคราว กันโดนเซิร์ฟเวอร์ดึงกลับ
+								if state.fasttween or state.fastTweenActive then
+									continue
+								end
+
 								-- target speed (dynamic = follow game's movespeed modifier, capped by slider)
 								local target = cfg.vars.walkspeed
 								if cfg.vars.walkdynamic then
@@ -72610,6 +72704,8 @@ Are you sure you want to enable it?]])
 					local now3, reachedNear = os.clock()
 					local rootPart = getRootPart()
 					local humanoid = getHumanoid()
+					local flySpeed = state.fastTweenSpeed()
+					state.fastTweenPause(false)
 
 					for _, child in ipairs(rootPart:GetChildren()) do
 						if child.ClassName == "AlignPosition" or child.ClassName == "AlignOrientation" then
@@ -72623,7 +72719,7 @@ Are you sure you want to enable it?]])
 					AlignPosition.Attachment0 = rootPart.RootAttachment
 					AlignPosition.Responsiveness = 200
 					AlignPosition.MaxForce = math.huge
-					AlignPosition.MaxVelocity = 300
+					AlignPosition.MaxVelocity = flySpeed
 					AlignPosition.Position = target.Position
 					AlignPosition.Parent = rootPart
 					local AlignOrientation = Instance.new("AlignOrientation")
@@ -72637,6 +72733,9 @@ Are you sure you want to enable it?]])
 					while true do
 						if not state.fasttween then
 							if not RunService.Heartbeat:Wait() then
+								AlignPosition:Destroy()
+								AlignOrientation:Destroy()
+								state.fastTweenResume()
 								return
 							end
 
@@ -72654,12 +72753,16 @@ Are you sure you want to enable it?]])
 							end
 							break
 						else
+							AlignPosition:Destroy()
+							AlignOrientation:Destroy()
+							state.fastTweenResume()
 							return
 						end
 					end
 
 					AlignPosition:Destroy()
 					AlignOrientation:Destroy()
+					state.fastTweenResume()
 					tracked[trackedCategory][target] = nil
 				end
 
