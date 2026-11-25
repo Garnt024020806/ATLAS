@@ -606,7 +606,7 @@ local cfg = {
 		enabled = false,
 		preset = "Blue",
 		buydrives = false,
-		usedrives = false,
+		usedrives = { Blue = true, Red = true, White = true, Glitched = true },
 		goldcogmowers = true,
 		goldcogmax = 20,
 		stacker = false,
@@ -66529,49 +66529,45 @@ do
 								end
 
 								local avoidMap = {}
-								local position2 = nil
+local position2 = nil
 
-								if not cfg.rbc.trackmobs then
-									for k in pairs(tracked.cogturrets) do
-										local Body = k:FindFirstChild("Body")
+-- [v1.2 port] รวมจุดหลบถาวร (snail/vicious/ฯลฯ) เข้า avoidMap ตอนทำ RBC
+if tracked.avoid then
+	for k, v in pairs(tracked.avoid) do
+		avoidMap[k] = v
+	end
+end
 
-										if Body then
-											local field = getFieldAt(Body.Position)
+-- [v1.2 port] เพิ่มจุดหลบของม็อบแต่ละชุด เฉพาะตัวที่อยู่ในฟิลด์ที่กำลังฟาร์ม
+local function addMobAvoid(mobSet, radius)
+	if not mobSet then
+		return
+	end
 
-											if not (not field or field.Name ~= v140.Field) then
-												avoidMap[Body.Position] = 15
-												position2 = position2 or Body.Position
-											end
-										end
-									end
+	for k in pairs(mobSet) do
+		local Body = k:FindFirstChild("Body")
 
-									for k in pairs(tracked.goldcogs) do
-										local Body = k:FindFirstChild("Body")
+		if Body then
+			local field = getFieldAt(Body.Position)
 
-										if Body then
-											local field = getFieldAt(Body.Position)
+			if not (not field or field.Name ~= v140.Field) then
+				avoidMap[Body.Position] = radius
+				position2 = position2 or Body.Position
+			end
+		end
+	end
+end
 
-											if not (not field or field.Name ~= v140.Field) then
-												avoidMap[Body.Position] = 20
-												position2 = position2 or Body.Position
-											end
-										end
-									end
-
-									for k in pairs(tracked.cogs) do
-										local Body = k:FindFirstChild("Body")
-
-										if Body then
-											local field = getFieldAt(Body.Position)
-
-											if not (not field or field.Name ~= v140.Field) then
-												avoidMap[Body.Position] = 20
-												position2 = position2 or Body.Position
-											end
-										end
-									end
-								else
-									for k, entityGroup in pairs(getupvalue(require(ReplicatedStorage.LocalFlyingEntity).Destroy, 3)) do
+if not cfg.rbc.trackmobs then
+	addMobAvoid(tracked.cogturrets, 15)
+	addMobAvoid(tracked.goldcogs, 20)
+	addMobAvoid(tracked.cogs, 20)
+	addMobAvoid(tracked.megamech, 15)
+	addMobAvoid(tracked.partycog, 20)
+	addMobAvoid(tracked.partycogturret, 15)
+	addMobAvoid(tracked.partymegamech, 15)
+else
+for k, entityGroup in pairs(getupvalue(require(ReplicatedStorage.LocalFlyingEntity).Destroy, 3)) do
 										if not (k == "Bee" or k == "Mechsquito") then
 											for k2 in pairs(entityGroup) do
 												if k2.Alive then
@@ -66589,23 +66585,35 @@ do
 											end
 										end
 									end
-								end
+end
 
-								for k in pairs(tracked.cogsaws) do
-									rbc.Avoid(avoidMap, k.Start, k.End, 10)
-								end
+-- [v1.2 port] มี Mechsquito ในฟิลด์ -> หลบรอบตำแหน่งตัวเอง (รัศมี 10) เหมือน v1.2
+if (tracked.mech and next(tracked.mech)) or (tracked.partymech and next(tracked.partymech)) then
+	local root = getRootPart()
 
-								if not position2 then
-									farmStep({ rbc = true })
-								else
-									farmStep({
-										rbc = true,
-										avoid = avoidMap,
-										skipoverlap = true,
-										origin = position2,
-										range = 50,
-									})
-								end
+	if root then
+		avoidMap[root.Position] = 10
+	end
+end
+
+for k in pairs(tracked.cogsaws) do
+	rbc.Avoid(avoidMap, k.Start, k.End, 10)
+end
+
+if position2 then
+	farmStep({
+		rbc = true,
+		avoid = avoidMap,
+		skipoverlap = true,
+		origin = position2,
+		range = 50,
+	})
+elseif next(avoidMap) then
+	-- [v1.2 port] ไม่มีม็อบให้ล็อกจุดศูนย์กลาง แต่ยังมีจุดหลบ (mech/cogsaw/avoid)
+	farmStep({ rbc = true, avoid = avoidMap })
+else
+	farmStep({ rbc = true })
+end
 							elseif shouldConvert() then
 								convertHoney()
 							end
