@@ -10999,7 +10999,7 @@ do
 		local rootPart = getRootPart()
 		local humanoid = getHumanoid()
 
-		if not state.bees or not (not not (state.bees >= 15) and distanceTo(locations.GummyBearShop) < 500) then
+		if state.leavingGummyLair or not state.bees or not (not not (state.bees >= 15) and distanceTo(locations.GummyBearShop) < 500) then
 			if not skipCaveCheck and state.bees then
 				local raycastParams = RaycastParams.new()
 				raycastParams.FilterDescendantsInstances = { workspace.Cave }
@@ -11011,9 +11011,8 @@ do
 				end
 			end
 		else
-			getHumanoid().Health = 0
-			localPlayer.CharacterAdded:Wait()
-			task.wait(1)
+			-- ออกจากห้อง Gummy ด้วยวิธีของ Atlas 1.2 (คุยกับ Gummy Bear) แล้วให้ task เดิมเริ่มใหม่จากข้างนอก
+			input:leaveGummyLair()
 			error("return", 0)
 		end
 
@@ -46545,6 +46544,61 @@ do
 		end
 	end
 
+	-- ออกจากห้องลับ Gummy Bear แบบเดียวกับ Atlas 1.2: ถ้ามี Gummy Mask ให้เดินไปคุยกับ Gummy Bear เพื่อวาร์ปออก
+	-- ถ้าไม่มี Gummy Mask หรือคุยไม่สำเร็จ จะรีเซ็ตตัวละครแทน; คืนค่า true เมื่ออยู่นอกห้องแล้ว (ไม่ต้องรีเซ็ต)
+	input.leaveGummyLair = function(owner)
+		if distanceTo(locations.GummyBearShop) >= 500 then
+			return true
+		end
+
+		local hasMask = false
+
+		for _, ownedItem in ipairs(gameApi:Cache("Accessories")) do
+			if ownedItem == "Gummy Mask" then
+				hasMask = true
+				break
+			end
+		end
+
+		if hasMask then
+			-- ตั้งธงกัน tweenTo รีเซ็ตตัวละครซ้ำระหว่างที่กำลังเดินไปหา Gummy Bear
+			state.leavingGummyLair = true
+
+			pcall(function()
+				local gummyBear = workspace.NPCs["Gummy Bear"]
+				local platformPosition = gummyBear.Platform.Position
+				local dialog = gameGui.Dialog
+
+				if distanceTo(platformPosition) > 9 then
+					if cfg.vars.movement == "Tween" or not pcall(walkTo, platformPosition, true, 8) then
+						tweenTo(platformPosition + Vector3.new(0, 7, 0), nil, true)
+					end
+				end
+
+				owner:open(dialog, "Gummy Bear", "NPCs", gummyBear)
+				skipDialog(dialog)
+
+				local now = os.clock()
+
+				while distanceTo(locations.GummyBearShop) < 500 and os.clock() - now < 2 do
+					RunService.Heartbeat:Wait()
+				end
+			end)
+
+			state.leavingGummyLair = nil
+		end
+
+		if distanceTo(locations.GummyBearShop) < 500 then
+			getHumanoid().Health = 0
+			localPlayer.CharacterAdded:Wait()
+			task.wait(1)
+
+			return false
+		end
+
+		return true
+	end
+
 	closePopups = function()
 		local dialog = gameGui.Dialog
 		local beeStats = localPlayer.PlayerGui.ScreenGui.BeeStats
@@ -56552,9 +56606,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			gameApi:Event("ItemPackageEvent", "Equip", { Type = label, Category = "Accessory" })
 
 			if not skipRespawn and label == "Gummy Mask" then
-				getHumanoid().Health = 0
-				localPlayer.CharacterAdded:Wait()
-				task.wait(1)
+				input:leaveGummyLair()
 			end
 		end
 
@@ -56603,9 +56655,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			gameApi:Event("ItemPackageEvent", "Equip", { Type = label, Category = "Collector" })
 
 			if not skipRespawn and label == "Gummyballer" then
-				getHumanoid().Health = 0
-				localPlayer.CharacterAdded:Wait()
-				task.wait(1)
+				input:leaveGummyLair()
 			end
 		end
 
@@ -65111,9 +65161,7 @@ do
 
 									if name == "GummyBearShop" then
 										task.wait(0.5)
-										getHumanoid().Health = 0
-										localPlayer.CharacterAdded:Wait()
-										task.wait(1)
+										input:leaveGummyLair()
 									end
 								end
 							end
@@ -65576,9 +65624,7 @@ do
 				end
 
 				if distanceTo(locations.GummyBearShop) < 500 then
-					getHumanoid().Health = 0
-					localPlayer.CharacterAdded:Wait()
-					task.wait(1)
+					input:leaveGummyLair()
 				end
 			end
 		end,
@@ -66358,9 +66404,7 @@ do
 									end
 
 									if distanceTo(locations.GummyBearShop) < 500 then
-										getHumanoid().Health = 0
-										localPlayer.CharacterAdded:Wait()
-										task.wait(1)
+										input:leaveGummyLair()
 									end
 								end
 
@@ -67650,9 +67694,7 @@ do
 
 									if name == "GummyBearShop" then
 										task.wait(0.5)
-										getHumanoid().Health = 0
-										localPlayer.CharacterAdded:Wait()
-										task.wait(1)
+										input:leaveGummyLair()
 									end
 								end
 							end
