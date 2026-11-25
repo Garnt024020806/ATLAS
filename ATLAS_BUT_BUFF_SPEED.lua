@@ -9358,8 +9358,10 @@ end)()
 	end
 
 	-- ปิดฟีเจอร์ที่ยุ่งกับตัวละครก่อน fast tween: หยุด walk speed, หยุด thread หมุนหน้า, หยุด Autofarm (ถ้า includeAutofarm), คืน WalkSpeed/physics เดิม กันโดนดึงกลับ
-	state.fastTweenPause = function(includeAutofarm)
+	state.fastTweenPause = function(includeAutofarm, expected)
 		state.fastTweenDepth = (state.fastTweenDepth or 0) + 1
+		-- watchdog: จำเวลาสูงสุดที่ควรค้าง (เวลา tween ที่คาดไว้ + 5 วิ) กัน pause ค้างตลอดไป
+		state.fastTweenDeadline = math.max(state.fastTweenDeadline or 0, os.clock() + (expected or 10) + 5)
 		if state.fastTweenDepth > 1 then
 			return
 		end
@@ -9410,13 +9412,28 @@ end)()
 			end
 		end
 	end
+	-- watchdog: ถ้า fastTweenPause ค้าง (เช่น ตายระหว่าง tween / thread ที่ต้อง Resume ถูกยกเลิก)
+	-- Autofarm จะถูกหยุดค้างและตัวละครยืนนิ่ง -> บังคับ Resume เมื่อเลยเวลาที่คาดไว้
+	task.spawn(function()
+		while true do
+			task.wait(1)
+
+			if (state.fastTweenDepth or 0) > 0 and os.clock() > (state.fastTweenDeadline or 0) then
+				logger.log("fastTween watchdog: force resume (stuck pause)")
+				state.fastTweenDepth = 1
+				state.fasttween = nil
+				state.fastTweenResume()
+			end
+		end
+	end)
+
 	if workspace:FindFirstChild("Collectibles") then
 		local function v69(target)
 			local distance = distanceTo(target)
 			local tween = TweenService:Create(getRootPart(), TweenInfo.new(distance / state.fastTweenSpeed(), Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(target) })
 			stopMovement()
 			logger.log("Collecting rare item")
-			state.fastTweenPause(true)
+			state.fastTweenPause(true, distance / state.fastTweenSpeed())
 			state.fasttween = true
 			tween:Play()
 			tween.Completed:Wait()
@@ -45981,7 +45998,7 @@ do
 				local distance = distanceTo(tokenData.Pos)
 				local tween = TweenService:Create(getRootPart(), TweenInfo.new(distance / state.fastTweenSpeed(), Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { CFrame = CFrame.new(tokenData.Pos) })
 				stopMovement()
-				state.fastTweenPause(true)
+				state.fastTweenPause(true, distance / state.fastTweenSpeed())
 				state.fasttween = true
 				tween:Play()
 				threadCount += 1
@@ -55496,7 +55513,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 				local linear = Enum.EasingStyle.Linear
 				local out = Enum.EasingDirection.Out
 				local tweenTime = distanceTo(object.Position) / state.fastTweenSpeed()
-				state.fastTweenPause(false)
+				state.fastTweenPause(false, tweenTime)
 				TweenService:Create(getRootPart(), TweenInfo.new(tweenTime, linear, out), { CFrame = CFrame.new(object.Position) }):Play()
 			end
 
@@ -57876,6 +57893,28 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 		end
 
 		useItems = function(useOptions)
+			-- [v1.2 port] ใช้ Drive ตามรอบจากเมนู Configure Materials (RBC) รอบละ 1 ครั้งต่อ drive
+			if useOptions.RBC and useOptions.Round and cfg.rbc.materials then
+				state.rbcDriveUsed = state.rbcDriveUsed or {}
+
+				for _, driveName in ipairs({ "Blue Drive", "Red Drive", "White Drive", "Glitched Drive" }) do
+					local driveCfg = cfg.rbc.materials[driveName]
+
+					-- driveCfg[3][Round] = true หมายถึงรอบนั้นถูกเอาออก (ตามที่ dropdown เก็บค่าไว้)
+					if driveCfg and driveCfg[1] and not (driveCfg[3] and driveCfg[3][useOptions.Round]) and state.rbcDriveUsed[driveName] ~= useOptions.Round then
+						inventory.time[driveName] = nil
+
+						if (inventory:Get(driveName, true) or 0) > 0 then
+							if inventory:Use(driveName, true) then
+								logger.log("Using material:", driveName)
+								state.rbcDriveUsed[driveName] = useOptions.Round
+								task.wait(0.25)
+							end
+						end
+					end
+				end
+			end
+
 			for _, materialName in ipairs({
 				"Gumdrops",
 				"Stinger",
@@ -66127,6 +66166,12 @@ do
 							local hasSpareDrive = nil
 
 							for k in pairs(cfg.rbc.usedrives) do
+								local perRoundCfg = cfg.rbc.materials and cfg.rbc.materials[k .. " Drive"]
+
+								if perRoundCfg and perRoundCfg[1] then
+									continue
+								end
+
 								local driveCount = inventory:Get(k .. " Drive", true) or 0
 								inventory.time[k .. " Drive"] = nil
 
@@ -66531,13 +66576,6 @@ do
 								local avoidMap = {}
 local position2 = nil
 
--- [v1.2 port] รวมจุดหลบถาวร (snail/vicious/ฯลฯ) เข้า avoidMap ตอนทำ RBC
-if tracked.avoid then
-	for k, v in pairs(tracked.avoid) do
-		avoidMap[k] = v
-	end
-end
-
 -- [v1.2 port] เพิ่มจุดหลบของม็อบแต่ละชุด เฉพาะตัวที่อยู่ในฟิลด์ที่กำลังฟาร์ม
 local function addMobAvoid(mobSet, radius)
 	if not mobSet then
@@ -66587,16 +66625,10 @@ for k, entityGroup in pairs(getupvalue(require(ReplicatedStorage.LocalFlyingEnti
 									end
 end
 
--- [v1.2 port] มี Mechsquito ในฟิลด์ -> หลบรอบตำแหน่งตัวเอง (รัศมี 10) เหมือน v1.2
-if (tracked.mech and next(tracked.mech)) or (tracked.partymech and next(tracked.partymech)) then
-	local root = getRootPart()
-
-	if root then
-		avoidMap[root.Position] = 10
-	end
-end
+local hasSaw = false
 
 for k in pairs(tracked.cogsaws) do
+	hasSaw = true
 	rbc.Avoid(avoidMap, k.Start, k.End, 10)
 end
 
@@ -66608,8 +66640,8 @@ if position2 then
 		origin = position2,
 		range = 50,
 	})
-elseif next(avoidMap) then
-	-- [v1.2 port] ไม่มีม็อบให้ล็อกจุดศูนย์กลาง แต่ยังมีจุดหลบ (mech/cogsaw/avoid)
+elseif hasSaw then
+	-- มีแค่ลูกเลื่อย cogsaw ให้หลบเส้นทางเท่านั้น
 	farmStep({ rbc = true, avoid = avoidMap })
 else
 	farmStep({ rbc = true })
@@ -66825,6 +66857,7 @@ end
 
 				if rbc.frame.Visible then
 					rbc.disableusedrives = nil
+					state.rbcDriveUsed = nil
 					rbcAmuletCheck()
 				end
 			end
@@ -70996,6 +71029,10 @@ more accurate dodging]],
 					"Tropical Drink",
 					"Purple Potion",
 					"Super Smoothie",
+					"Blue Drive",
+					"Red Drive",
+					"White Drive",
+					"Glitched Drive",
 				}, 135, "RBC Materials")
 
 				rbcFolder.Toggle(true)
@@ -72755,7 +72792,7 @@ Are you sure you want to enable it?]])
 					local rootPart = getRootPart()
 					local humanoid = getHumanoid()
 					local flySpeed = state.fastTweenSpeed()
-					state.fastTweenPause(false)
+					state.fastTweenPause(false, 7)
 
 					for _, child in ipairs(rootPart:GetChildren()) do
 						if child.ClassName == "AlignPosition" or child.ClassName == "AlignOrientation" then
