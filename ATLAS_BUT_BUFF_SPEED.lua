@@ -60848,7 +60848,7 @@ end
 
 local farmPuffshroom
 
--- ฟาร์ม Puffshroom: เดินไปตี แล้วเก็บ token ที่ drop ทุกชนิด (ยกเว้น honey token) ในรัศมี 25 จากตัวเห็ด รวมถึงที่ตกนอกขอบ field (ระหว่างนั้นไม่ดึงกลับ field จนกว่าจะไกลจากเห็ดเกินรัศมี+10)
+-- ฟาร์ม Puffshroom: เดินไปตี แล้วเก็บ token ที่ drop ในรัศมี 25 จากตัวเห็ด เฉพาะที่อยู่ใน field เท่านั้น (ไม่เดินออกนอก field ถ้าหลุดจะดึงกลับทันที)
 farmPuffshroom = function(v119)
 	local puffshroom, puffRarity, puffLevel = findPuffshroom(v119)
 	if not puffshroom then
@@ -60887,11 +60887,11 @@ farmPuffshroom = function(v119)
 				farmState.field = field.Name
 			end
 
-			local farmOptions = { loot = true, anyfield = true, origin = position2, range = 25 }
+			local farmOptions = { loot = true, origin = position2, range = 25 }
 
-			-- เช็กว่าตัวละครหลุดออกนอก field และไกลจากเห็ดเกินรัศมีเก็บ token หรือยัง (ถ้ายังอยู่ในรัศมีให้เดินเก็บ token นอกขอบต่อได้ ไม่ต้องดึงกลับ)
+			-- เช็กว่าตัวละครหลุดออกนอก field ของเห็ดหรือยัง (หลุดเมื่อไหร่ดึงกลับทันที ไม่เดินเก็บ token นอกขอบ)
 			local function tooFarFromPuffshroom()
-				return getFieldAt(getRootPart().Position) ~= field and distanceTo(position2, true) > farmOptions.range + 10
+				return getFieldAt(getRootPart().Position) ~= field
 			end
 			local now = os.clock()
 			local exitTo = nil
