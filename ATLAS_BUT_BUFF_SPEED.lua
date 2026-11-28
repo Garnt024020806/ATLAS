@@ -339,6 +339,7 @@ local cfg = {
 		balloonTarget = false,
 		balloonTargetMin = 15,
 		balloonTargetMax = 20,
+		balloonTargetCustomBag = 0,
 	},
 	combat = {
 		avoidmobs = true,
@@ -60028,10 +60029,10 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			return 0
 		end
 
-		-- คำนวณเป้าหมายโพลเลนของ balloon = ขนาดกระเป๋า x (สุ่ม Min..Max) โดยเริ่มคำนวณเมื่อเข้า field แล้วเท่านั้น
+		-- คำนวณเป้าหมายโพลเลนของ balloon = ขนาดกระเป๋า x (สุ่ม Min..Max) โดยรอเข้า field ครบ 5 นาที (300 วินาที) ก่อนค่อยคำนวณ
 		-- (เรียกจาก goToField ทุกครั้ง; คำนวณครั้งเดียวต่อรอบ แล้วเคลียร์ใหม่หลัง convert เสร็จ)
 		state.sampleBalloonTarget = function()
-			if not cfg.convert.balloonTarget or state.balloonTarget then
+			if not cfg.convert.balloonTarget or state.balloonTarget or state.balloonTargetEnteredAt then
 				return
 			end
 
@@ -60041,11 +60042,22 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 				return
 			end
 
-			local lowMult = cfg.convert.balloonTargetMin or 15
-			local highMult = math.max(cfg.convert.balloonTargetMax or 20, lowMult)
-			local mult = lowMult + math.random() * (highMult - lowMult)
-			state.balloonTarget = localPlayer.CoreStats.Capacity.Value * mult
-			logger.log("Balloon target", math.floor(state.balloonTarget), "pollen (bag x" .. string.format("%.1f", mult) .. ")")
+			local enteredAt = os.clock()
+			state.balloonTargetEnteredAt = enteredAt
+
+			task.delay(300, function()
+				if not cfg.convert.balloonTarget or state.balloonTarget or state.balloonTargetEnteredAt ~= enteredAt then
+					return
+				end
+
+				local customBag = tonumber(cfg.convert.balloonTargetCustomBag) or 0
+				local bagSize = customBag > 0 and customBag or localPlayer.CoreStats.Capacity.Value
+				local lowMult = cfg.convert.balloonTargetMin or 15
+				local highMult = math.max(cfg.convert.balloonTargetMax or 20, lowMult)
+				local mult = lowMult + math.random() * (highMult - lowMult)
+				state.balloonTarget = bagSize * mult
+				logger.log("Balloon target", math.floor(state.balloonTarget), "pollen (bag " .. math.floor(bagSize) .. " x" .. string.format("%.1f", mult) .. ")")
+			end)
 		end
 
 		-- ควร convert เข้า balloon ไหม: โหมดเดิม = เวลา blessing เหลือ <= ค่าที่ตั้ง, โหมด Balloon Target = โพลเลนใน balloon ยังไม่ถึงเป้าหมาย
@@ -60698,6 +60710,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			task.wait(5)
 			state.conversions = state.conversions + 1
 			state.balloonTarget = nil
+			state.balloonTargetEnteredAt = nil
 		end
 	end
 
@@ -69428,6 +69441,9 @@ which bees and get all 3 targets if
 				convertFolder.AddSwitch("Balloon Target (x bag size)", nil, "convert", "balloonTarget")
 				convertFolder.AddSlider("Balloon Target Min (x bag)", nil, 1, 40, "convert", "balloonTargetMin")
 				convertFolder.AddSlider("Balloon Target Max (x bag)", nil, 1, 40, "convert", "balloonTargetMax")
+				convertFolder.AddTextBox("Balloon Custom Bag Size (0 = auto)", function(n)
+					cfg.convert.balloonTargetCustomBag = math.max(0, tonumber(n) or 0)
+				end, tostring(cfg.convert.balloonTargetCustomBag or 0), true)
 				convertFolder.AddSwitch("Wait Before Converting", nil, "convert", "waitBeforeConverting")
 				convertFolder.AddSlider("Time To Wait (seconds)", nil, 1, 60, "convert", "timeToWait")
 
@@ -72316,7 +72332,7 @@ more accurate dodging]],
 					textLabel.BackgroundTransparency = 1
 					textLabel.Size = UDim2.fromScale(1, 1)
 					textLabel.Font = Enum.Font.GothamBold
-					textLabel.TextSize = 14
+					textLabel.TextSize = 9
 					textLabel.TextStrokeTransparency = 0
 					textLabel.TextWrapped = true
 					textLabel.Parent = tag
@@ -72340,8 +72356,6 @@ more accurate dodging]],
 						return
 					end
 
-					local character = localPlayer.Character
-					local hrp = character and character:FindFirstChild("HumanoidRootPart")
 					local seen = {}
 
 					for _, model in ipairs(folder:GetChildren()) do
@@ -72351,12 +72365,11 @@ more accurate dodging]],
 							seen[model] = true
 							local item = espItems[model] or createEspItem(model, top)
 							local color = rarityColors[rarity]
-							local distanceText = hrp and string.format("  [%d studs]", (top.Position - hrp.Position).Magnitude) or ""
 
 							item.highlight.FillColor = color
 							item.highlight.OutlineColor = color
 							item.label.TextColor3 = color
-							item.label.Text = string.format("%s Puffshroom\nLV %d%s", rarity, level, distanceText)
+							item.label.Text = string.format("%s Puffshroom\nLV %d", rarity, level)
 						end
 					end
 
