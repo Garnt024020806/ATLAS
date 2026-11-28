@@ -386,6 +386,7 @@ local cfg = {
 		fastshowertween = false,
 		fastcoconuttween = false,
 		fastraretween = false,
+		fastraretweenmult = 1,
 		rares = false,
 	},
 	dispensers = {
@@ -9415,7 +9416,8 @@ end)()
 	-- tween ไปหา rare แบบปลอดภัย: ถ้า error/tween ค้างกลางทาง ก็ยัง Resume + ล้าง state.fasttween เสมอ (กัน Autofarm ค้างนิ่ง)
 	state.runFastTween = function(target)
 		local distance = distanceTo(target)
-		local duration = distance / state.fastTweenSpeed()
+		local speed = state.fastTweenSpeed() * (cfg.detected.fastraretweenmult or 1)
+		local duration = distance / speed
 		stopMovement()
 		state.fastTweenPause(true, duration)
 		state.fasttween = true
@@ -9437,7 +9439,7 @@ end)()
 					tween:Cancel()
 				end)
 			end
-			task.wait(distance > 200 and 0.3 or 0.1)
+			task.wait(distance > 200 and 0.1 or 0.03)
 		end)
 		state.fastTweenResume()
 		state.fasttween = nil
@@ -73356,6 +73358,8 @@ Are you sure you want to enable it?]])
 						ui.Notify("Fast Tween To Rares", "This feature is detected and can get you reset.\nAre you sure you want to enable it?")
 					end
 				end, "detected", "fastraretween")
+
+				detectedFolder.AddSlider("Fast Tween Speed Multiplier", nil, 1, 5, "detected", "fastraretweenmult")
 
 				local eggIconIds = {
 					Sticker = "Sticker",
