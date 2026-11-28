@@ -69417,6 +69417,7 @@ which bees and get all 3 targets if
 					Neonberry = "6087992633",
 					Bitterberry = "6087985073",
 					Honey = "1952683491",
+					Gumdrops = "1838129169",
 				}
 
 				local combinedIconIds = {}
@@ -73407,6 +73408,13 @@ Are you sure you want to enable it?]])
 					Glitter = "2542899798",
 					Glue = "2504978518",
 					Oil = "2545746569",
+					Gumdrops = "1838129169",
+					["Sunflower Seed"] = "1952682401",
+					Strawberry = "1952679735",
+					Blueberry = "1952680613",
+					Pineapple = "1952681305",
+					Coconut = "1952681863",
+					Bitterberry = "6087985073",
 				}
 
 				detectedFolder.AddDropdown("Rares List", eggIconIds, true, function(selectedRares)
