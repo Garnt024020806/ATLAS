@@ -60011,21 +60011,20 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 		-- โพลเลนที่สะสมอยู่ใน hive balloon ของเรา (อ่านจากตัวเลขบน balloon เหมือนที่ webhook อ่าน)
 		state.balloonPollen = function()
 			local hiveBalloons = workspace.Balloons and workspace.Balloons:FindFirstChild("HiveBalloons")
+			local child = hiveBalloons and hiveBalloons:FindFirstChild("HiveBalloonInstance")
 
-			if not hiveBalloons then
+			if not child then
 				return 0
 			end
 
-			for _, child in ipairs(hiveBalloons:GetChildren()) do
-				local BalloonRoot = child:FindFirstChild("BalloonRoot")
+			local BalloonRoot = child:FindFirstChild("BalloonRoot")
 
-				if BalloonRoot and BalloonRoot.Position.X == localPlayer.SpawnPos.Value.Position.X then
-					local ok, value = pcall(function()
-						return tonumber((string.gsub(child.BalloonBody.GuiAttach.Gui.Bar.TextLabel.Text, ",", "")))
-					end)
+			if BalloonRoot and BalloonRoot.Position.X == localPlayer.SpawnPos.Value.Position.X then
+				local ok, value = pcall(function()
+					return tonumber((string.gsub(child.BalloonBody.GuiAttach.Gui.Bar.TextLabel.Text, ",", "")))
+				end)
 
-					return ok and value or 0
-				end
+				return ok and value or 0
 			end
 
 			return 0
@@ -60080,10 +60079,10 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			end)
 		end
 
-		-- ควร convert เข้า balloon ไหม: โหมดเดิม = เวลา blessing เหลือ <= ค่าที่ตั้ง, โหมด Balloon Target = โพลเลนใน balloon ยังไม่ถึงเป้าหมาย
+		-- ควร convert เข้า balloon ไหม: โหมดเดิม = เวลา blessing เหลือ <= ค่าที่ตั้ง, โหมด Balloon Target = โพลเลนใน balloon ถึงเป้าหมายแล้ว (>=)
 		state.balloonWanted = function(minutesLeft)
 			if cfg.convert.balloonTarget and state.balloonTarget then
-				return state.balloonPollen() < state.balloonTarget
+				return state.balloonPollen() >= state.balloonTarget
 			end
 
 			return minutesLeft <= cfg.convert.convertHiveBalloonAt
