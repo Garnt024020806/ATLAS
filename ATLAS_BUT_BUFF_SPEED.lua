@@ -60031,16 +60031,39 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			return 0
 		end
 
-		-- คำนวณเป้าหมายโพลเลนของ balloon = ขนาดกระเป๋า x (สุ่ม Min..Max) โดยรอเข้า field ครบ 5 นาที (300 วินาที) ก่อนค่อยคำนวณ
-		-- (เรียกจาก goToField ทุกครั้ง; คำนวณครั้งเดียวต่อรอบ แล้วเคลียร์ใหม่หลัง convert เสร็จ)
+		-- คำนวณเป้าหมายโพลเลนของ balloon = ขนาดกระเป๋า x (สุ่ม Min..Max)
+		-- ถ้ายังไม่เคยจำขนาดกระเป๋า จะรอเข้า field ครบ 5 นาที (300 วินาที) ก่อนแล้วจำไว้ใช้ต่อโดยไม่รีเซ็ต
 		state.sampleBalloonTarget = function()
-			if not cfg.convert.balloonTarget or state.balloonTarget or state.balloonTargetEnteredAt then
+			if not cfg.convert.balloonTarget or state.balloonTarget then
 				return
 			end
 
 			local field = getFieldAt(getRootPart().Position)
 
 			if not field or field ~= currentField then
+				return
+			end
+
+			local function applyTarget(bagSize)
+				local lowMult = cfg.convert.balloonTargetMin or 15
+				local highMult = math.max(cfg.convert.balloonTargetMax or 20, lowMult)
+				local mult = lowMult + math.random() * (highMult - lowMult)
+				state.balloonTarget = bagSize * mult
+				logger.log("Balloon target", math.floor(state.balloonTarget), "pollen (bag " .. math.floor(bagSize) .. " x" .. string.format("%.1f", mult) .. ")")
+			end
+
+			local customBag = tonumber(cfg.convert.balloonTargetCustomBag) or 0
+			if customBag > 0 then
+				applyTarget(customBag)
+				return
+			end
+
+			if state.balloonTargetBagSize then
+				applyTarget(state.balloonTargetBagSize)
+				return
+			end
+
+			if state.balloonTargetEnteredAt then
 				return
 			end
 
@@ -60052,13 +60075,8 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 					return
 				end
 
-				local customBag = tonumber(cfg.convert.balloonTargetCustomBag) or 0
-				local bagSize = customBag > 0 and customBag or localPlayer.CoreStats.Capacity.Value
-				local lowMult = cfg.convert.balloonTargetMin or 15
-				local highMult = math.max(cfg.convert.balloonTargetMax or 20, lowMult)
-				local mult = lowMult + math.random() * (highMult - lowMult)
-				state.balloonTarget = bagSize * mult
-				logger.log("Balloon target", math.floor(state.balloonTarget), "pollen (bag " .. math.floor(bagSize) .. " x" .. string.format("%.1f", mult) .. ")")
+				state.balloonTargetBagSize = localPlayer.CoreStats.Capacity.Value
+				applyTarget(state.balloonTargetBagSize)
 			end)
 		end
 
