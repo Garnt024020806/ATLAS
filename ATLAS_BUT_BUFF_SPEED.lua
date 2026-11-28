@@ -447,6 +447,12 @@ local cfg = {
 		bqdel2 = false,
 		bqdelconf = false,
 		realpot = false,
+		puffesp = false,
+		puffespCommon = true,
+		puffespRare = true,
+		puffespEpic = true,
+		puffespLegendary = true,
+		puffespMythic = true,
 	},
 	planters = {
 		enabled = false,
@@ -72209,6 +72215,195 @@ more accurate dodging]],
 				UiFolder.Toggle(true, true)
 				applyAll()
 				task.delay(1.5, applyAll)
+			end
+
+			do
+				-- Puffshroom ESP: one switch per rarity, label shows rarity + LV + distance
+				local EspFolder = controls.settings.AddFolder("Puffshroom ESP")
+				local rarityOrder = { "Common", "Rare", "Epic", "Legendary", "Mythic" }
+				local rarityColors = {
+					Common = Color3.fromRGB(235, 235, 235),
+					Rare = Color3.fromRGB(70, 150, 255),
+					Epic = Color3.fromRGB(180, 80, 255),
+					Legendary = Color3.fromRGB(255, 170, 40),
+					Mythic = Color3.fromRGB(255, 60, 90),
+				}
+				local espItems = {}
+				local espRoot = nil
+				local espWarned = false
+
+				-- container for the ESP instances (hidden ui / CoreGui, same place as the main gui)
+				local function getEspRoot()
+					if not espRoot or not espRoot.Parent then
+						espRoot = Instance.new("Folder")
+						espRoot.Name = "PuffshroomEsp"
+						espRoot.Parent = gethui and gethui() or getService("CoreGui")
+					end
+
+					return espRoot
+				end
+
+				-- reads rarity + level from the in-game name label of a puffshroom
+				local function readPuffInfo(model)
+					local top = model:FindFirstChild("Puffball Top")
+					local attachment = top and top:FindFirstChild("Attachment")
+					local gui = attachment and attachment:FindFirstChild("Gui")
+					local nameRow = gui and gui:FindFirstChild("NameRow")
+					local label = nameRow and nameRow:FindFirstChild("TextLabel")
+
+					if not label or not top:IsA("BasePart") then
+						return nil
+					end
+
+					local text = label.Text
+					local rarity = "Common"
+
+					for i = #rarityOrder, 2, -1 do
+						if string.find(text, rarityOrder[i], 1, true) then
+							rarity = rarityOrder[i]
+							break
+						end
+					end
+
+					local level = tonumber(string.match(text, "[Ll][Vv][Ll]?%.?%s*(%d+)")) or 1
+
+					return rarity, level, top
+				end
+
+				-- removes the ESP instances of one puffshroom
+				local function removeEspItem(model)
+					local item = espItems[model]
+
+					if item then
+						pcall(item.highlight.Destroy, item.highlight)
+						pcall(item.tag.Destroy, item.tag)
+						espItems[model] = nil
+					end
+				end
+
+				-- removes every ESP instance
+				local function clearEsp()
+					for model in pairs(espItems) do
+						removeEspItem(model)
+					end
+
+					if espRoot then
+						pcall(espRoot.Destroy, espRoot)
+						espRoot = nil
+					end
+				end
+
+				-- creates highlight + billboard label for a puffshroom
+				local function createEspItem(model, top)
+					local root = getEspRoot()
+					local highlight = Instance.new("Highlight")
+					highlight.Name = "PuffHighlight"
+					highlight.Adornee = model
+					highlight.FillTransparency = 0.65
+					highlight.OutlineTransparency = 0
+					highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+					highlight.Parent = root
+
+					local tag = Instance.new("BillboardGui")
+					tag.Name = "PuffTag"
+					tag.Adornee = top
+					tag.AlwaysOnTop = true
+					tag.Size = UDim2.fromOffset(170, 44)
+					tag.StudsOffset = Vector3.new(0, 4, 0)
+					tag.Parent = root
+
+					local textLabel = Instance.new("TextLabel")
+					textLabel.BackgroundTransparency = 1
+					textLabel.Size = UDim2.fromScale(1, 1)
+					textLabel.Font = Enum.Font.GothamBold
+					textLabel.TextSize = 14
+					textLabel.TextStrokeTransparency = 0
+					textLabel.TextWrapped = true
+					textLabel.Parent = tag
+
+					local item = { highlight = highlight, tag = tag, label = textLabel }
+					espItems[model] = item
+
+					return item
+				end
+
+				-- scans workspace.Happenings.Puffshrooms and refreshes ESP (only rarities that are switched on)
+				local function updateEsp()
+					local happenings = workspace:FindFirstChild("Happenings")
+					local folder = happenings and happenings:FindFirstChild("Puffshrooms")
+
+					if not folder then
+						for model in pairs(espItems) do
+							removeEspItem(model)
+						end
+
+						return
+					end
+
+					local character = localPlayer.Character
+					local hrp = character and character:FindFirstChild("HumanoidRootPart")
+					local seen = {}
+
+					for _, model in ipairs(folder:GetChildren()) do
+						local rarity, level, top = readPuffInfo(model)
+
+						if rarity and cfg.misc["puffesp" .. rarity] then
+							seen[model] = true
+							local item = espItems[model] or createEspItem(model, top)
+							local color = rarityColors[rarity]
+							local distanceText = hrp and string.format("  [%d studs]", (top.Position - hrp.Position).Magnitude) or ""
+
+							item.highlight.FillColor = color
+							item.highlight.OutlineColor = color
+							item.label.TextColor3 = color
+							item.label.Text = string.format("%s Puffshroom\nLV %d%s", rarity, level, distanceText)
+						end
+					end
+
+					for model in pairs(espItems) do
+						if not seen[model] then
+							removeEspItem(model)
+						end
+					end
+				end
+
+				-- starts / stops the ESP loop (throttled to 4 updates per second)
+				local function setEsp(on)
+					connections:Cancel("puffesp")
+
+					if on then
+						local elapsed = 0
+
+						connections:Add("puffesp", RunService.Heartbeat:Connect(function(dt)
+							elapsed += dt
+
+							if elapsed < 0.25 then
+								return
+							end
+
+							elapsed = 0
+							local ok, err = pcall(updateEsp)
+
+							if not ok and not espWarned then
+								espWarned = true
+								warn("[Puffshroom ESP]", err)
+							end
+						end))
+					else
+						clearEsp()
+					end
+				end
+
+				ScreenGui.Destroying:Connect(clearEsp)
+
+				EspFolder.AddSwitch("Puffshroom ESP", setEsp, "misc", "puffesp")
+				EspFolder.AddLabel("Show ESP for each rarity:")
+
+				for _, rarity in ipairs(rarityOrder) do
+					EspFolder.AddSwitch(rarity .. " Puffshroom", nil, "misc", "puffesp" .. rarity)
+				end
+
+				EspFolder.Toggle(true, true)
 			end
 
 			do
