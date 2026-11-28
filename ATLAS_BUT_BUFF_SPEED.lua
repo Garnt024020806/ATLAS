@@ -61739,22 +61739,12 @@ do
 			end
 
 			if not cfg.sprouts.plant or cfg.autofarm.field1 ~= sproutField.Name or not cfg.sprouts.amount or not (not not (cfg.sprouts.left > 0) and (sproutField.Name ~= "Mountain Top Field" or not tracked.mondo) and (sproutField.Name ~= "Coconut Field" or mobCooldown(monsterSpawners.CoconutCrab)) and (not cfg.sprouts.plantday and not cfg.sprouts.plantnight or not ((not cfg.sprouts.plantnight or not (Lighting.ClockTime >= 19 or Lighting.ClockTime <= 5)) and (not cfg.sprouts.plantday or not (Lighting.ClockTime < 19) or not (Lighting.ClockTime > 5))))) then
-				local now2 = os.clock()
-
-				while os.clock() - now2 < 20 do
-					if not RunService.Heartbeat:Wait() then
-						break
-					end
+				state.collectFor("sprout", sproutField.Name, 20, function()
 					goToField()
 					farmStep({ loot = true })
-				end
+				end)
 			else
-				local now2 = os.clock()
-
-				while os.clock() - now2 < 20 do
-					if not RunService.Heartbeat:Wait() then
-						break
-					end
+				state.collectFor("sprout", sproutField.Name, 20, function()
 					goToField()
 
 					if cfg.sprouts.collect then
@@ -61783,12 +61773,84 @@ do
 							local stats2 = discord.stats
 							stats2["Total Sprouts"] = stats2["Total Sprouts"] + 1
 							logger.log("Planting sprout in", sproutField.Name)
-							now2 = os.clock()
+							return true
 						end
 					end
-				end
+				end, function()
+					goToField()
+
+					if cfg.sprouts.collect then
+						farmStep({ loot = true })
+					end
+				end)
 			end
 		end
+	end
+
+	-- เก็บ token ให้ครบเวลาก่อนไปทำอย่างอื่น
+	-- fast tween ไปหา rare ยังแทรกได้ตามเดิม (มันหยุด thread Autofarm ชั่วคราว) พอจบแล้วจะกลับมาเก็บต่อจนครบเวลาที่เหลือ
+	state.collectFor = function(kind, fieldName, duration, tick, simpleTick)
+		local phase = state.collectPhase
+
+		if not phase or phase.kind ~= kind or os.clock() - phase.lastTick > 30 then
+			phase = { kind = kind, field = fieldName, untilT = os.clock() + duration, lastTick = os.clock() }
+			state.collectPhase = phase
+		end
+
+		phase.simple = simpleTick or tick
+
+		while os.clock() < phase.untilT do
+			-- fast tween กำลังทำงาน: รอให้จบ แล้วชดเชยเวลาที่เสียไป
+			if state.fasttween or state.fastTweenActive then
+				local waitStart = os.clock()
+
+				while (state.fasttween or state.fastTweenActive) and os.clock() - waitStart < 15 do
+					RunService.Heartbeat:Wait()
+				end
+
+				phase.untilT = phase.untilT + (os.clock() - waitStart)
+			end
+
+			phase.lastTick = os.clock()
+			RunService.Heartbeat:Wait()
+
+			local ok, extend = pcall(tick, phase)
+
+			if not ok then
+				-- error จาก fast tween (เช่น goToField ตอนอยู่นอก field) ไม่นับ ให้วนรอต่อ ส่วน error อื่นปล่อยออกเหมือนเดิม
+				if not (state.fasttween or state.fastTweenActive) then
+					state.collectPhase = nil
+					error(extend, 0)
+				end
+			elseif extend then
+				phase.untilT = os.clock() + duration
+			end
+		end
+
+		if state.collectPhase == phase then
+			state.collectPhase = nil
+		end
+	end
+
+	-- เรียกต้นรอบ Autofarm: ถ้ามีช่วงเก็บ token ที่ยังไม่ครบเวลา (ถูก fast tween ตัด) ให้เก็บต่อ
+	state.resumeCollect = function()
+		local phase = state.collectPhase
+
+		if not phase then
+			return
+		end
+
+		local now = os.clock()
+
+		if now >= phase.untilT or now - phase.lastTick > 30 then
+			state.collectPhase = nil
+			return
+		end
+
+		phase.untilT = phase.untilT + (now - phase.lastTick)
+		phase.lastTick = now
+		setField(phase.field)
+		state.collectFor(phase.kind, phase.field, 0, phase.simple)
 	end
 
 	local killCommando
@@ -62312,15 +62374,10 @@ do
 				stats["Total Boss Kills"] = stats["Total Boss Kills"] + 1
 			end
 		else
-			local now = os.clock()
-
-			while os.clock() - now < 60 do
-				if not RunService.Heartbeat:Wait() then
-					break
-				end
+			state.collectFor("mondo", "Mountain Top Field", 60, function()
 				goToField()
 				farmStep({ loot = true })
-			end
+			end)
 		end
 	end
 
@@ -68557,6 +68614,11 @@ end
 
 					if cfg.hive.lvlup and state.levelUpHive and (not state.lvlupnextwake or state.lvlupnextwake < os.clock()) then
 						state.levelUpHive()
+					end
+
+					-- กลับมาเก็บ token ต่อให้ครบเวลา ถ้าถูก fast tween ไปหา rare ตัดกลางคัน
+					if state.resumeCollect then
+						state.resumeCollect()
 					end
 
 					v127()
