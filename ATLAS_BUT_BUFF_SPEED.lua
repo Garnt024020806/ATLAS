@@ -336,6 +336,9 @@ local cfg = {
 		alwaysConvertBalloon = false,
 		convert6xBubbleBloat = false,
 		useEnzymesBalloon = false,
+		balloonTarget = false,
+		balloonTargetMin = 15,
+		balloonTargetMax = 20,
 	},
 	combat = {
 		avoidmobs = true,
@@ -11294,6 +11297,10 @@ do
 			else
 				state.stopface = nil
 			end
+		end
+
+		if state.sampleBalloonTarget then
+			state.sampleBalloonTarget()
 		end
 	end
 
@@ -59992,6 +59999,58 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			end
 		end
 
+		-- โพลเลนที่สะสมอยู่ใน hive balloon ของเรา (อ่านจากตัวเลขบน balloon เหมือนที่ webhook อ่าน)
+		state.balloonPollen = function()
+			local hiveBalloons = workspace.Balloons and workspace.Balloons:FindFirstChild("HiveBalloons")
+
+			if not hiveBalloons then
+				return 0
+			end
+
+			for _, child in ipairs(hiveBalloons:GetChildren()) do
+				local BalloonRoot = child:FindFirstChild("BalloonRoot")
+
+				if BalloonRoot and BalloonRoot.Position.X == localPlayer.SpawnPos.Value.Position.X then
+					local ok, value = pcall(function()
+						return tonumber((string.gsub(child.BalloonBody.GuiAttach.Gui.Bar.TextLabel.Text, ",", "")))
+					end)
+
+					return ok and value or 0
+				end
+			end
+
+			return 0
+		end
+
+		-- คำนวณเป้าหมายโพลเลนของ balloon = ขนาดกระเป๋า x (สุ่ม Min..Max) โดยเริ่มคำนวณเมื่อเข้า field แล้วเท่านั้น
+		-- (เรียกจาก goToField ทุกครั้ง; คำนวณครั้งเดียวต่อรอบ แล้วเคลียร์ใหม่หลัง convert เสร็จ)
+		state.sampleBalloonTarget = function()
+			if not cfg.convert.balloonTarget or state.balloonTarget then
+				return
+			end
+
+			local field = getFieldAt(getRootPart().Position)
+
+			if not field or field ~= currentField then
+				return
+			end
+
+			local lowMult = cfg.convert.balloonTargetMin or 15
+			local highMult = math.max(cfg.convert.balloonTargetMax or 20, lowMult)
+			local mult = lowMult + math.random() * (highMult - lowMult)
+			state.balloonTarget = localPlayer.CoreStats.Capacity.Value * mult
+			logger.log("Balloon target", math.floor(state.balloonTarget), "pollen (bag x" .. string.format("%.1f", mult) .. ")")
+		end
+
+		-- ควร convert เข้า balloon ไหม: โหมดเดิม = เวลา blessing เหลือ <= ค่าที่ตั้ง, โหมด Balloon Target = โพลเลนใน balloon ยังไม่ถึงเป้าหมาย
+		state.balloonWanted = function(minutesLeft)
+			if cfg.convert.balloonTarget and state.balloonTarget then
+				return state.balloonPollen() < state.balloonTarget
+			end
+
+			return minutesLeft <= cfg.convert.convertHiveBalloonAt
+		end
+
 		shouldConvert = function(v124, v125)
 			local bagFill = bagPercent()
 
@@ -60086,7 +60145,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 				if not (not cfg.convert.convertHiveBalloon or not getHiveBalloon()) then
 					local balloonPercent = buffs.Balloon and buffs.Balloon.Percent.Size.Y.Scale * 60 or 0
 
-					if balloonPercent <= cfg.convert.convertHiveBalloonAt then
+					if state.balloonWanted(balloonPercent) then
 						if not (not cfg.convert.resetWhenConverting or not (distanceTo(localPlayer.SpawnPos.Value.Position, true) > 9)) then
 							getHumanoid().Health = 0
 							localPlayer.CharacterAdded:Wait()
@@ -60332,7 +60391,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 							end
 
 							if not (not cfg.convert.convertHiveBalloon or not getHiveBalloon()) then
-								if (buffs.Balloon and buffs.Balloon.Percent.Size.Y.Scale * 60 or 0) <= cfg.convert.convertHiveBalloonAt then
+								if state.balloonWanted(buffs.Balloon and buffs.Balloon.Percent.Size.Y.Scale * 60 or 0) then
 									if not (not cfg.convert.resetWhenConverting or not (distanceTo(localPlayer.SpawnPos.Value.Position, true) > 9)) then
 										getHumanoid().Health = 0
 										localPlayer.CharacterAdded:Wait()
@@ -60528,7 +60587,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 			if ok then
 				logger.log("Converting honey")
 			elseif not cfg.convert.alwaysConvertBalloon then
-				if (buffs.Balloon and buffs.Balloon.Percent.Size.Y.Scale * 60 or 0) <= cfg.convert.convertHiveBalloonAt or not (not cfg.convert.convert6xBubbleBloat or not buffs.BubbleBloat or not (buffs.BubbleBloat.Size.Y.Scale > 0.8)) then
+				if state.balloonWanted(buffs.Balloon and buffs.Balloon.Percent.Size.Y.Scale * 60 or 0) or not (not cfg.convert.convert6xBubbleBloat or not buffs.BubbleBloat or not (buffs.BubbleBloat.Size.Y.Scale > 0.8)) then
 					logger.log("Converting hive balloon")
 				else
 					logger.log("Converting honey")
@@ -60632,6 +60691,7 @@ Content-Disposition: form-data; name="file[0]"; filename="image.png"
 
 			task.wait(5)
 			state.conversions = state.conversions + 1
+			state.balloonTarget = nil
 		end
 	end
 
@@ -69359,6 +69419,9 @@ which bees and get all 3 targets if
 				convertFolder.AddSlider("Convert Honey At", nil, 1, 100, "convert", "convertHoneyAt")
 				convertFolder.AddSwitch("Convert Hive Balloon", nil, "convert", "convertHiveBalloon")
 				convertFolder.AddSlider("Convert Balloon At (blessing minutes)", nil, 5, 55, "convert", "convertHiveBalloonAt")
+				convertFolder.AddSwitch("Balloon Target (x bag size)", nil, "convert", "balloonTarget")
+				convertFolder.AddSlider("Balloon Target Min (x bag)", nil, 1, 40, "convert", "balloonTargetMin")
+				convertFolder.AddSlider("Balloon Target Max (x bag)", nil, 1, 40, "convert", "balloonTargetMax")
 				convertFolder.AddSwitch("Wait Before Converting", nil, "convert", "waitBeforeConverting")
 				convertFolder.AddSlider("Time To Wait (seconds)", nil, 1, 60, "convert", "timeToWait")
 
